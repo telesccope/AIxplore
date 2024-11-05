@@ -47,6 +47,16 @@ const chatReducer = (state, action) => {
         ...state,
         chatWindows: state.chatWindows.filter(chat => chat.id !== action.payload),
       };
+    case 'LOAD_HISTORY':
+      return {
+          ...state,
+          chatWindows: action.payload,
+        };
+    case 'DELETE_CHAT':
+      return {
+        ...state,
+        chatWindows: state.chatWindows.filter(chat => chat.id !== action.payload),
+      };
     default:
       return state;
   }

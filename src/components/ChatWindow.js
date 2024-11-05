@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import ImageViewing from 'react-native-image-viewing';
+import Markdown from 'react-native-markdown-display';
 
 const ChatWindow = ({ messages }) => {
   const flatListRef = useRef();
@@ -31,9 +32,9 @@ const ChatWindow = ({ messages }) => {
             <Image source={{ uri: item.uri }} style={styles.image} />
           </TouchableOpacity>
         ) : (
-          <Text style={[styles.messageText, isUserMessage ? styles.userText : styles.systemText]}>
+          <Markdown style={isUserMessage ? styles.userText : styles.systemText}>
             {item.text}
-          </Text>
+          </Markdown>
         )}
       </View>
     );
@@ -45,7 +46,7 @@ const ChatWindow = ({ messages }) => {
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         style={styles.chatContainer}
         contentContainerStyle={{ paddingBottom: 10 }}
       />
@@ -77,9 +78,6 @@ const styles = StyleSheet.create({
   systemMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#e5e5ea',
-  },
-  messageText: {
-    color: '#fff',
   },
   userText: {
     color: '#fff',

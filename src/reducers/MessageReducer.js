@@ -16,10 +16,7 @@ const initialMessagesState = {
       case 'LOAD_MESSAGES':
         return {
           ...state,
-          messages: {
-            ...state.messages,
-            [action.payload.chatId]: action.payload.messages,
-          },
+          messages: action.payload,
         };
       default:
         return state;

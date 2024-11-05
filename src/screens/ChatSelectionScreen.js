@@ -43,6 +43,10 @@ const ChatSelectionScreen = ({ navigation }) => {
       dispatch({ type: 'ADD_CHAT', payload: newChat });
     }, 300); // Adjust delay as needed
   };
+  
+  const handleDeleteChat = (chatId) => {
+    dispatch({ type: 'DELETE_CHAT', payload: chatId });
+  };
 
   const chatWindows = state.chatState.chatWindows.map(chat => ({
     ...chat,
@@ -52,7 +56,7 @@ const ChatSelectionScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {chatWindows && (
-        <ChatList chats={chatWindows} onSelect={handleSelectChat} />
+        <ChatList chats={chatWindows} onSelect={handleSelectChat} onDelete={handleDeleteChat} />
       )}
       <TouchableOpacity style={styles.newChatButton} onPress={handleNewChat}>
         <Text style={styles.newChatButtonText}>+ New Chat</Text>

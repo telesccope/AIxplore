@@ -1,14 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { Platform } from 'react-native';
-
 import { ChatContext } from '../context/ChatContext';
 import { getSystemReply } from '../services/ChatService';
 import ChatWindow from '../components/ChatWindow';
 import MessageInput from '../components/MessageInput';
 import CameraButton from '../components/CameraButton';
+import { readFile } from 'react-native-fs';
+import uuid from 'react-native-uuid';
 
 const ChatScreen = ({ navigation }) => {
   const { state, dispatch } = useContext(ChatContext);
@@ -29,11 +29,11 @@ const ChatScreen = ({ navigation }) => {
 
   const handleSend = async (text) => {
     if (!currentChatId) return;
-
+  
     setMessageSent(true);
-
-    const userMessage = { text, sender: 'user' };
-
+  
+    const userMessage = { id: uuid.v4(), text, sender: 'user' };
+  
     dispatch({
       type: 'ADD_MESSAGE',
       payload: {
@@ -41,82 +41,125 @@ const ChatScreen = ({ navigation }) => {
         message: userMessage,
       },
     });
-
-    const systemReply = await getSystemReply(text);
-
+  
+    // Retrieve current chat messages
+    const chatMessages = currentMessages.map(msg => ({
+      role: msg.sender === 'user' ? 'user' : 'system',
+      content: msg.text || msg.uri,
+      type: msg.type || 'text'
+    }));
+  
+    // Add the new message to the array
+    chatMessages.push({
+      role: 'user',
+      content: text,
+      type: 'text'
+    });
+  
+    const systemReply = await getSystemReply(chatMessages);
+  
     dispatch({
       type: 'ADD_MESSAGE',
       payload: {
         chatId: currentChatId,
-        message: { ...systemReply, sender: 'system' },
+        message: { ...systemReply, id: uuid.v4(), sender: 'system' },
       },
     });
   };
+  
 
   const handleCameraOpen = async () => {
     let permission;
-  
-  if (Platform.OS === 'android') {
-    permission = await check(PERMISSIONS.ANDROID.CAMERA);
-  } else {
-    permission = await check(PERMISSIONS.IOS.CAMERA);
-  }
 
-  if (permission === RESULTS.DENIED) {
-    let requestResult;
-    
     if (Platform.OS === 'android') {
-      requestResult = await request(PERMISSIONS.ANDROID.CAMERA);
+      permission = await check(PERMISSIONS.ANDROID.CAMERA);
     } else {
-      requestResult = await request(PERMISSIONS.IOS.CAMERA);
+      permission = await check(PERMISSIONS.IOS.CAMERA);
     }
 
-    if (requestResult !== RESULTS.GRANTED) {
-      console.warn('Camera permission denied');
-      return;
-    }
-  } else if (permission !== RESULTS.GRANTED) {
-    console.warn('Camera permission not granted');
-    return;
-  }
+    if (permission === RESULTS.DENIED) {
+      let requestResult;
 
-  launchCamera(
-    {
-      mediaType: 'photo',
-      saveToPhotos: true,
-    },
-    async (response) => {
-      if (response.didCancel || response.errorCode) {
-        console.warn('Camera operation cancelled or failed');
+      if (Platform.OS === 'android') {
+        requestResult = await request(PERMISSIONS.ANDROID.CAMERA);
+      } else {
+        requestResult = await request(PERMISSIONS.IOS.CAMERA);
+      }
+
+      if (requestResult !== RESULTS.GRANTED) {
+        console.warn('Camera permission denied');
         return;
       }
-
-      const { assets } = response;
-      if (assets && assets.length > 0) {
-        const photoMessage = { uri: assets[0].uri, sender: 'user', type: 'image' };
-
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            chatId: currentChatId,
-            message: photoMessage,
-          },
-        });
-
-        setMessageSent(true);
-
-        const systemReply = await getSystemReply(photoMessage);
-
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: {
-            chatId: currentChatId,
-            message: { ...systemReply, sender: 'system' },
-          },
-        });
-      }
+    } else if (permission !== RESULTS.GRANTED) {
+      console.warn('Camera permission not granted');
+      return;
     }
-  );
+
+    launchCamera(
+      {
+        mediaType: 'photo',
+        saveToPhotos: true,
+      },
+      async (response) => {
+        if (response.didCancel || response.errorCode) {
+          console.warn('Camera operation cancelled or failed');
+          return;
+        }
+  
+        const { assets } = response;
+        if (assets && assets.length > 0) {
+          const { uri } = assets[0];
+  
+          try {
+            // Convert image to base64
+            const base64Image = await readFile(uri, 'base64');
+  
+            const photoMessage = {
+              id: uuid.v4(),
+              uri: `data:image/jpeg;base64,${base64Image}`,
+              sender: 'user',
+              type: 'image'
+            };
+  
+            dispatch({
+              type: 'ADD_MESSAGE',
+              payload: {
+                chatId: currentChatId,
+                message: photoMessage,
+              },
+            });
+  
+            setMessageSent(true);
+  
+            // Retrieve current chat messages
+            const chatMessages = currentMessages.map(msg => ({
+              role: msg.sender === 'user' ? 'user' : 'system',
+              content: msg.text || msg.uri,
+              type: msg.type || 'text'
+            }));
+  
+            // Add the new image message to the array
+            chatMessages.push({
+              role: 'user',
+              content: photoMessage.uri,
+              type: 'image'
+            });
+  
+            const systemReply = await getSystemReply(chatMessages);
+  
+            dispatch({
+              type: 'ADD_MESSAGE',
+              payload: {
+                chatId: currentChatId,
+                message: { ...systemReply, id: uuid.v4(), sender: 'system' },
+              },
+            });
+          } catch (error) {
+            console.error('Error reading file:', error);
+          }
+        }
+      }
+    );
   };
 
   return (

@@ -16,6 +16,10 @@ npm start
 npx react-native start --reset-cache
 # OR using Yarn
 yarn start
+
+
+./gradlew assembleRelease
+adb logcat '*:S' ReactNative:V ReactNativeJS:V
 ```
 
 ## Step 2: Start your Application

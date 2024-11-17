@@ -3,7 +3,7 @@ const initialState = {
   currentChatId: null,
 };
 
-const chatReducer = (state, action) => {
+const chatReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'LOAD_HISTORY':
       return {
@@ -47,11 +47,6 @@ const chatReducer = (state, action) => {
         ...state,
         chatWindows: state.chatWindows.filter(chat => chat.id !== action.payload),
       };
-    case 'LOAD_HISTORY':
-      return {
-          ...state,
-          chatWindows: action.payload,
-        };
     case 'DELETE_CHAT':
       return {
         ...state,
@@ -62,4 +57,4 @@ const chatReducer = (state, action) => {
   }
 };
 
-export { chatReducer, initialState };
+export default chatReducer;

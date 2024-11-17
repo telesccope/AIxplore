@@ -1,21 +1,16 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import ChatSelectionScreen from './src/screens/ChatSelectionScreen';
-import ChatScreen from './src/screens/ChatScreen';
-import { ChatProvider } from './src/context/ChatContext';
+import React from 'react';
+import { Provider } from 'react-redux';
+import RootNavigator from './src/navigation/RootNavigator.js';
+import store from './store.js';
 
-const Stack = createStackNavigator();
+console.log("App component rendered0");
 
 const App = () => {
+  console.log("App component rendered");
   return (
-    <ChatProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="ChatSelection">
-          <Stack.Screen name="ChatSelection" component={ChatSelectionScreen} />
-          <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </ChatProvider>
+    <Provider store={store}>
+      <RootNavigator />
+    </Provider>
   );
 };
 

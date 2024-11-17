@@ -1,18 +1,18 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { ChatContext } from '../context/ChatContext';
-import { loadChatHistory } from '../services/ChatService';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadChatHistory, setCurrentChat, addChat, deleteChat } from '../actions/ChatAction';
 import ChatList from '../components/ChatList';
 import moment from 'moment';
 
-const ChatSelectionScreen = ({ navigation }) => {
-  const { state, dispatch } = useContext(ChatContext);
+const HomeScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const chatWindows = useSelector(state => state.chatWindows);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const history = await loadChatHistory();
-        dispatch({ type: 'LOAD_HISTORY', payload: history });
+        await dispatch(loadChatHistory());
       } catch (error) {
         console.error('Error loading chat history:', error);
       }
@@ -21,7 +21,7 @@ const ChatSelectionScreen = ({ navigation }) => {
   }, [dispatch]);
 
   const handleSelectChat = (chatId) => {
-    dispatch({ type: 'SET_CURRENT_CHAT', payload: chatId });
+    dispatch(setCurrentChat(chatId));
     navigation.navigate('ChatScreen');
   };
 
@@ -34,29 +34,27 @@ const ChatSelectionScreen = ({ navigation }) => {
       lastUsed: moment().toISOString(),
     };
 
-    // Set current chat and navigate first
-    dispatch({ type: 'SET_CURRENT_CHAT', payload: newChatId });
+    dispatch(setCurrentChat(newChatId));
     navigation.navigate('ChatScreen');
 
-    // Add the new chat after a short delay
     setTimeout(() => {
-      dispatch({ type: 'ADD_CHAT', payload: newChat });
-    }, 300); // Adjust delay as needed
-  };
-  
-  const handleDeleteChat = (chatId) => {
-    dispatch({ type: 'DELETE_CHAT', payload: chatId });
+      dispatch(addChat(newChat));
+    }, 300);
   };
 
-  const chatWindows = state.chatState.chatWindows.map(chat => ({
+  const handleDeleteChat = (chatId) => {
+    dispatch(deleteChat(chatId));
+  };
+
+  const chatsWithLastUsed = chatWindows.map(chat => ({
     ...chat,
     lastUsed: chat.lastUsed || moment().toISOString(),
   }));
 
   return (
     <View style={styles.container}>
-      {chatWindows && (
-        <ChatList chats={chatWindows} onSelect={handleSelectChat} onDelete={handleDeleteChat} />
+      {chatsWithLastUsed && (
+        <ChatList chats={chatsWithLastUsed} onSelect={handleSelectChat} onDelete={handleDeleteChat} />
       )}
       <TouchableOpacity style={styles.newChatButton} onPress={handleNewChat}>
         <Text style={styles.newChatButtonText}>+ New Chat</Text>
@@ -86,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatSelectionScreen;
+export default HomeScreen;

@@ -1,11 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Icon } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const CameraButton = ({ onPress }) => {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Icon name="camera" type="font-awesome" size={24} color="#000" />
+      <Icon name="photo-camera" size={24} color="#000" />
     </TouchableOpacity>
   );
 };

@@ -20,16 +20,18 @@ const ChatWindow = ({ messages }) => {
 
     const handleImagePress = () => {
       if (item.type === 'image') {
-        setSelectedImage([{ uri: item.uri }]);
+        setSelectedImage([{ uri: `file://${item.uri}` }]);
         setIsVisible(true);
       }
     };
+
+    console.log('item', item);
 
     return (
       <View style={[styles.messageContainer, isUserMessage ? styles.userMessage : styles.systemMessage]}>
         {item.type === 'image' ? (
           <TouchableOpacity onPress={handleImagePress}>
-            <Image source={{ uri: item.uri }} style={styles.image} />
+            <Image source={{ uri: `file://${item.uri}` }} style={styles.image} />
           </TouchableOpacity>
         ) : (
           <Markdown style={isUserMessage ? styles.userText : styles.systemText}>

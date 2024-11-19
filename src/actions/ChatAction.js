@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageResizer from 'react-native-image-resizer';
+import { v4 as uuidv4 } from 'uuid';
+import { readFile } from 'react-native-fs';
+import api from '../constants/api';
 
 // Action types
 export const LOAD_HISTORY = 'LOAD_HISTORY';
@@ -10,16 +13,17 @@ export const ADD_MESSAGE = 'ADD_MESSAGE';
 export const REMOVE_CHAT = 'REMOVE_CHAT';
 export const DELETE_CHAT = 'DELETE_CHAT';
 
+
 // Action creators
 export const loadChatHistory = () => async (dispatch) => {
-  console.log('loadChatHistory called');
+  //////console.log('loadChatHistory called');
   try {
     const history = await AsyncStorage.getItem('chatHistory');
     const parsedHistory = history ? JSON.parse(history) : [];
-    console.log('Loaded chat history:', parsedHistory);
+    //////console.log('Loaded chat history:', parsedHistory);
     dispatch({ type: LOAD_HISTORY, payload: parsedHistory });
   } catch (error) {
-    console.error('Failed to load chat history', error);
+    //////console.error('Failed to load chat history', error);
     dispatch({ type: LOAD_HISTORY, payload: [] });
   }
 };
@@ -54,12 +58,8 @@ export const deleteChat = (chatId) => ({
   payload: chatId,
 });
 
-export const getSystemReply = (chatMessages) => async (dispatch) => {
-  console.log('getSystemReply called');
+export const getSystemReply = async (chatMessages, chatId, messageId) => {
   try {
-    const url = 'https://travelassistant.uk/v1/chat/completions';
-    const headers = { 'Content-Type': 'application/json' };
-
     const messages = await Promise.all(chatMessages.map(async (msg) => {
       if (msg.type === 'image') {
         const resizedImage = await ImageResizer.createResizedImage(
@@ -83,12 +83,15 @@ export const getSystemReply = (chatMessages) => async (dispatch) => {
         return {
           role: msg.role,
           content: [
-            { type: 'text', text: 'Describe the image' },
+            {
+              type: 'text',
+              text: chatMessages.some(m => m.type === 'text') ? null : 'Describe the image',
+            },
             {
               type: 'image_url',
               image_url: { url: `data:image/jpeg;base64,${imgB64Str}` }
             }
-          ]
+          ].filter(item => item.text !== null)
         };
       } else {
         return {
@@ -100,30 +103,95 @@ export const getSystemReply = (chatMessages) => async (dispatch) => {
 
     const data = {
       model: 'chatgpt-4o-latest',
-      messages: messages
+      messages: messages,
+      chat_id: chatId,
+      message_id: messageId,
     };
 
     console.log('Data sent to backend:', JSON.stringify(data, null, 2));
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(data)
-    });
+    const response = await api.post('/v1/chat/completions', data);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const responseData = await response.json();
+    const responseData = response.data;
     const message = {
       type: 'text',
       text: responseData.choices[0]?.message?.content || "No response"
     };
 
-    // Dispatch an action to add the message to the chat
-    dispatch(addMessage(chatMessages[0].chatId, message));
+    return message;
   } catch (error) {
     console.error('Error in getSystemReply:', error);
+    throw error;
   }
 };
+
+export const addNewChat = (initialMessage, dispatch, navigation) => {
+  const newChatId = Date.now().toString();
+  const userMessage = initialMessage ? { id: uuidv4(), text: initialMessage, sender: 'user', type: 'text' } : null;
+  const newChat = {
+    id: newChatId,
+    name: 'New Chat',
+    messages: [],
+    lastUsed: new Date().toISOString(),
+  };
+
+  dispatch(setCurrentChat(newChatId));
+  dispatch(addChat(newChat));
+  navigation.navigate('Chat');
+
+  if (userMessage) {
+    dispatch(addMessage(newChatId, userMessage));
+  }
+
+  return { newChatId, userMessage };
+};
+export const handleChatMessages = async (newChatId, userMessage, photoUri, dispatch) => {
+  let chatMessages = [];
+
+  if (photoUri) {
+    try {
+      const base64Image = await readFile(photoUri, 'base64');
+      const photoMessage = {
+        id: uuidv4(),
+        uri: `data:image/jpeg;base64,${base64Image}`,
+        sender: 'user',
+        type: 'image',
+        timestamp: new Date().toISOString(),
+      };
+
+      dispatch(addMessage(newChatId, photoMessage));
+
+      chatMessages.push({
+        role: 'user',
+        content: `data:image/jpeg;base64,${base64Image}`,
+        type: 'image',
+      });
+
+    } catch (error) {
+      console.error('Error handling photo message:', error);
+    }
+  }
+
+  if (userMessage) {
+    chatMessages.push({
+      role: 'user',
+      content: userMessage.text,
+      type: 'text',
+    });
+  }
+
+  if (chatMessages.length > 0) {
+    try {
+      const systemReply = await getSystemReply(chatMessages, newChatId, userMessage?.id);
+      dispatch(addMessage(newChatId, {
+        ...systemReply,
+        id: uuidv4(),
+        sender: 'system',
+        timestamp: new Date().toISOString(),
+      }));
+    } catch (error) {
+      console.error('Error getting system reply:', error);
+    }
+  }
+};
+

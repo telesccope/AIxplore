@@ -1,4 +1,4 @@
-package com.travelassistant
+package com.aixplore
 
 import android.app.Application
 import com.facebook.react.PackageList

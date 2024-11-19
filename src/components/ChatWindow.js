@@ -1,16 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
-import ImageViewing from 'react-native-image-viewing';
 import Markdown from 'react-native-markdown-display';
+import ImageViewing from 'react-native-image-viewing';
 
-const ChatWindow = ({ messages }) => {
+const ChatWindow = ({ messages = [] }) => {
   const flatListRef = useRef();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && flatListRef.current) {
       flatListRef.current.scrollToEnd({ animated: false });
     }
   }, [messages]);
@@ -20,18 +20,18 @@ const ChatWindow = ({ messages }) => {
 
     const handleImagePress = () => {
       if (item.type === 'image') {
-        setSelectedImage([{ uri: `file://${item.uri}` }]);
+        setSelectedImage([{ uri: item.uri }]);
         setIsVisible(true);
       }
     };
 
-    console.log('item', item);
+    //console.log('item', item);
 
     return (
       <View style={[styles.messageContainer, isUserMessage ? styles.userMessage : styles.systemMessage]}>
         {item.type === 'image' ? (
           <TouchableOpacity onPress={handleImagePress}>
-            <Image source={{ uri: `file://${item.uri}` }} style={styles.image} />
+            <Image source={{ uri: item.uri }} style={styles.image} />
           </TouchableOpacity>
         ) : (
           <Markdown style={isUserMessage ? styles.userText : styles.systemText}>

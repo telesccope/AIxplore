@@ -1,13 +1,11 @@
 // reducers/RootReducer.js
 import { combineReducers } from 'redux';
 import chatReducer from './ChatReducer.js';
-import messagesReducer from './MessageReducer.js';
 import loginReducer from './LoginReducer.js';
 
 // 创建一个组合所有 reducer 的根级别 reducer
 const appReducer = combineReducers({
   chatReducer: chatReducer,
-  messagesReducer: messagesReducer,
   loginReducer: loginReducer,
 });
 

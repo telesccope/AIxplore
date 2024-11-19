@@ -22,7 +22,7 @@ target 'TravelAssistant' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
+  pod 'react-native-maps', :path => '../node_modules/react-native-maps'
   target 'TravelAssistantTests' do
     inherit! :complete
     # Pods for testing

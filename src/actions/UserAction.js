@@ -39,6 +39,31 @@ export function userLogin(username, password) {
   };
 }
 
+export const userGoogleAuth = (idToken) => {
+  return async (dispatch) => {
+    dispatch({ type: UserTypes.USER_LOGIN_REQUEST });
+
+    try {
+      const response = await api.post('/auth/google-signin', { idToken });
+      dispatch({
+        type: UserTypes.USER_LOGIN_SUCCESS,
+        payload: {
+          userinfo: response.data.userinfo,
+        }
+      });
+    } catch (error) {
+      let errorMessage = error.response ? error.response.data.message : error.message;
+      Alert.alert('Login Failure', errorMessage);
+      dispatch({
+        type: UserTypes.USER_LOGIN_FAILURE,
+        payload: {
+          loginerror: errorMessage,
+        }
+      });
+    }
+  };
+};
+
 export const setUser = (userInfo) => (dispatch) => {
   dispatch({
     type: UserTypes.USER_LOGIN_SUCCESS,
@@ -98,7 +123,7 @@ export function userRegister(
       Organisation: Organisation,
       TypeOfVehicle: TypeOfVehicle,
     };
-    console.log(registerData,'*******')
+    ////console.log(registerData,'*******')
     try {
       // 先调用注册接口
       const registerResponse = await api.post('/users/register', {
@@ -216,7 +241,7 @@ export const sendNotification = (notificationData) => {
       return Promise.resolve(response.data.message); // 成功时解析 Promise
     } catch (error) {
       let errorMessage;
-      console.log(error, error.message, error.data, '****');
+      ////console.log(error, error.message, error.data, '****');
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
       } else {

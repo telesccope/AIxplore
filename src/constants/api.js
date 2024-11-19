@@ -1,9 +1,9 @@
 // constants/api.js
 
-//export const BASE_URL = 'https://travelassistant.uk/';
-export const BASE_URL = "http://127.0.0.1:8000"
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const BASE_URL = "http://192.168.1.164:8000";
 
 const api = axios.create({
   baseURL: BASE_URL, 
@@ -16,22 +16,31 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // 禁用缓存
     config.headers['Cache-Control'] = 'no-cache';
     config.headers['Pragma'] = 'no-cache';
     config.headers['Expires'] = '0';
 
+    console.log('Request:', JSON.stringify({
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    }, null, 2));
+
     return config;
   },
-  error => Promise.reject(error)
+  error => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
 );
 
 api.interceptors.response.use(
   response => response,
   async error => {
     if (!error.response) {
-      console.log('Error is undefined, skipping...');
-      return Promise.reject(error);
+      console.log('Network error or server is unreachable');
+      return Promise.reject(new Error('Network error or server is unreachable'));
     }
     const originalRequest = error.config;
 
@@ -39,7 +48,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = await AsyncStorage.getItem('@refresh_token');
-        console.log('get refresh_token from storage:',refreshToken)
+        console.log('Get refresh_token from storage:', refreshToken);
         const res = await axios.post(`${BASE_URL}/token/refresh`, {}, { 
           headers: {
             'Authorization': `Bearer ${refreshToken}` 
@@ -54,6 +63,13 @@ api.interceptors.response.use(
         console.log('Unable to refresh token', e);
       }
     }
+
+    console.error('Response Error:', JSON.stringify({
+      url: error.config.url,
+      status: error.response.status,
+      data: error.response.data
+    }, null, 2));
+
     return Promise.reject(error);
   }
 );

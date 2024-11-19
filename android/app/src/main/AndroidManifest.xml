@@ -1,11 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
 
     <application
@@ -16,6 +15,21 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:supportsRtl="true">
+
+      <meta-data
+          android:name="com.google.android.gms.version"
+          android:value="@integer/google_play_services_version" />
+      
+      <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAVyc_-aXeGX0uSQ2wrS5mCCHdO9_fjxD4" />
+
+      <activity
+          android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+          android:excludeFromRecents="true"
+          android:exported="false"
+          android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

@@ -10,11 +10,14 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         chatWindows: action.payload,
       };
-    case 'ADD_CHAT':
-      return {
-        ...state,
-        chatWindows: [...state.chatWindows, action.payload],
-      };
+      case 'ADD_CHAT':
+        return {
+          ...state,
+          chatWindows: {
+            ...state.chatWindows,
+            [action.payload.id]: action.payload,
+          },
+        };      
     case 'UPDATE_LAST_USED':
       return {
         ...state,
@@ -29,19 +32,22 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         currentChatId: action.payload,
       };
-    case 'ADD_MESSAGE':
-      return {
-        ...state,
-        chatWindows: state.chatWindows.map(chat => 
-          chat.id === action.payload.chatId
-            ? {
-                ...chat,
-                messages: [...chat.messages, action.payload.message],
-                lastUsed: action.payload.message.timestamp, 
-              }
-            : chat
-        ),
-      };
+      case 'ADD_MESSAGE':
+        return {
+          ...state,
+          chatWindows: {
+            ...state.chatWindows,
+            [action.payload.chatId]: {
+              ...state.chatWindows[action.payload.chatId],
+              messages: [
+                ...state.chatWindows[action.payload.chatId].messages,
+                action.payload.message
+              ],
+              lastUsed: action.payload.message.timestamp,
+            },
+          },
+        };
+      
     case 'REMOVE_CHAT':
       return {
         ...state,

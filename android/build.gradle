@@ -1,27 +1,22 @@
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "35.0.0" // 确保这个版本存在
         minSdkVersion = 24
         compileSdkVersion = 35
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
-        kotlinVersion = "1.9.24"
+        kotlinVersion = "1.9.24" // 确保 Kotlin 版本是最新的稳定版本
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.android.tools.build:gradle:8.1.0") // 确保版本号
+        classpath("com.facebook.react:react-native-gradle-plugin:0.71.0") // 检查版本号
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24") // 检查版本号
+        classpath("com.google.gms:google-services:4.3.10") // 确保这个版本是最新的
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url "https://jitpack.io" } // 添加 JitPack 仓库
-    }
-}
+apply plugin: "com.facebook.react"

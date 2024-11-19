@@ -16,12 +16,6 @@ export const ChatListItem = ({ chat, onSelect, onDelete, style }) => (
         </Text>
       </View>
     </View>
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => onDelete(chat.id)}
-    >
-      <Text style={styles.deleteButtonText}>Delete</Text>
-    </TouchableOpacity>
   </TouchableOpacity>
 );
 

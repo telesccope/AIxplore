@@ -1,87 +1,87 @@
-import React, { useState, useEffect,useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image,Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { userLogin,setUser } from '../actions/UserAction';
+import { userLogin, setUser, userGoogleAuth } from '../actions/UserAction';
 import { useDispatch, useSelector } from 'react-redux';
-import { MyButton } from '../components/Button'
+import { MyButton } from '../components/Button';
 import { MyInput } from '../components/Input';
 import { MyBackground } from '../components/Background';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 function LoginScreen({ navigation }) {
-  console.log("navigation","LoginScreen")
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const userLoginState = useSelector(state => state.loginReducer);
   const { loginloading, loginerror, userinfo } = userLoginState; 
+  console.log('userinfo', userinfo);
   const hasNavigatedRef = useRef(false);
 
   useFocusEffect(
-    
     React.useCallback(() => {
       setUsername('');
       setPassword('');
-
-      return () => {
-      };
+      return () => {};
     }, [])
   );
-  const saveUserInfo = async (userInfo) => {
-    try {
-      const jsonValue = JSON.stringify(userInfo)
-      await AsyncStorage.setItem('@user_info', jsonValue)
-      await AsyncStorage.setItem('@access_token', userInfo.access_token);
-      await AsyncStorage.setItem('@refresh_token', userInfo.refresh_token);
-    } catch (e) {
-    }
-  }
-  const getUserInfo = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('@user_info')
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
-    } catch(e) {
-      return null;
-    }
-  }
-  
+
   useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: '842353906367-e4gvdn4rhhpl2j8a25l3jgbtaqp93s46.apps.googleusercontent.com'
+    });
+
     const checkLoginStatus = async () => {
       const userInfo = await getUserInfo();
-      console.log('get user info from storage:',userInfo)
-      dispatch(setUser(userInfo))
-      if(userInfo && userInfo.email){
-        if (!hasNavigatedRef.current) {
-          hasNavigatedRef.current = true;
-          navigation.replace('Home');
-        }
-      }
-    }
-  
-    checkLoginStatus();
-  }, []);
-  
-  useEffect(() => {
-    saveUserInfo(userinfo);
-    const fetchData = async () => {
-      if (userinfo) {
-        await requestLocationPermission();
+      dispatch(setUser(userInfo));
+      if (userInfo && userInfo.email) {
         if (!hasNavigatedRef.current) {
           hasNavigatedRef.current = true;
           navigation.replace('Home');
         }
       }
     };
-  
+
+    //checkLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    saveUserInfo(userinfo);
+    const fetchData = async () => {
+      if (userinfo) {
+        if (!hasNavigatedRef.current) {
+          hasNavigatedRef.current = true;
+          navigation.replace('Home');
+        }
+      }
+    };
+
     fetchData();
   }, [userinfo]);
 
   useEffect(() => {
     if (loginerror) {
-      console.log('useEffect error',loginerror)
+      console.log('useEffect error', loginerror);
     }
   }, [loginerror]); 
+
+  const saveUserInfo = async (userInfo) => {
+    try {
+      const jsonValue = JSON.stringify(userInfo);
+      await AsyncStorage.setItem('@user_info', jsonValue);
+      await AsyncStorage.setItem('@access_token', userInfo.access_token);
+      await AsyncStorage.setItem('@refresh_token', userInfo.refresh_token);
+    } catch (e) {}
+  };
+
+  const getUserInfo = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@user_info');
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+      return null;
+    }
+  };
 
   const requestLocationPermission = async () => {
     let { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
@@ -89,42 +89,14 @@ function LoginScreen({ navigation }) {
       Alert.alert('Permission Denied', 'Foreground location permission denied');
       return false;
     }
-    /*
-    let postNotificationsGranted = true;  
-    if (Platform.OS === 'android' && parseInt(Platform.Version, 10) >= 31) {
-    const status = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-
-    if (status) {
-        postNotificationsGranted = true;
-    } else {
-        const postNotificationsStatus = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-            {
-                title: "Notification Permission",
-                message: "This app needs permission to post notifications.",
-                buttonNeutral: "Ask Me Later",
-                buttonNegative: "Cancel",
-                buttonPositive: "OK",
-            }
-        );
-        postNotificationsGranted = postNotificationsStatus === PermissionsAndroid.RESULTS.GRANTED;
-    }
-        
-        if (!postNotificationsGranted) {
-            Alert.alert('Permission Denied', 'Post notification permission is denied');
-            return false;
-        }
-    }
-    */
     console.log("Successfully obtained front location permissions");
     return true; 
   };
-    
+
   const [errorMessages, setErrorMessages] = useState({
     username: '',
     password: ''
   });
-
 
   const handleLogin = async () => { 
     let errors = {};
@@ -145,42 +117,57 @@ function LoginScreen({ navigation }) {
   const handleRegister = () => {
     navigation.navigate('Register');
   };
-  
+
+  const handleGoogleSignIn = async () => {
+    try {
+        console.log('Google Sign-In');
+        await GoogleSignin.hasPlayServices();
+        const userInfo = await GoogleSignin.signIn();
+        const idToken = userInfo.data.idToken;
+
+        console.log('user info', userInfo);
+
+        dispatch(userGoogleAuth(idToken));
+    } catch (error) {
+        console.error('Error during sign-in:', error);
+        console.error('Error details:', error.message, error.code);
+    }
+};
+
 
   return (
-      <MyBackground>
+    <MyBackground>
       <View style={styles.logoContainer}>
-      <Image
-        source={require('../../assets/logo.jpg')} 
-        style={styles.titleLogo} 
-      />
+        <Image
+          source={require('../../assets/logo.jpg')} 
+          style={styles.titleLogo} 
+        />
       </View>
       <Text style={styles.title}>Your Journey to a Greener Tomorrow</Text>
-      <MyInput placeholder="Please enter your email or account" value={username}
-          onChangeText={newText => setUsername(newText)}
-          errorMessage={errorMessages.username}
-          />
-      <MyInput placeholder="Password" secureTextEntry value={password}
-          onChangeText={newText => setPassword(newText)}
-          errorMessage={errorMessages.password}
-          />
+      <MyInput 
+        placeholder="Please enter your email or account" 
+        value={username}
+        onChangeText={setUsername}
+        errorMessage={errorMessages.username}
+      />
+      <MyInput 
+        placeholder="Password" 
+        secureTextEntry 
+        value={password}
+        onChangeText={setPassword}
+        errorMessage={errorMessages.password}
+      />
       <MyButton title='Login' text='Sign In' onPress={handleLogin}/>
       <MyButton title='Register' text='Create an Account' onPress={handleRegister}/>
-      {/* <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Forget')
-            }}
-        >
-          <Text style={styles.forgetPassword}>Forget password?</Text>
-        </TouchableOpacity> */}
+      <MyButton title='Google Sign-In' text='Sign In with Google' onPress={handleGoogleSignIn}/>
       <View style={styles.logoContainer}>
-      <Image
-        source={require('../../assets/logo.jpg')} 
-        style={{ width: 120, height: 80 }} 
-      />
-      <Text style={styles.footerText}> Copyright © 2024</Text>
+        <Image
+          source={require('../../assets/logo.jpg')} 
+          style={{ width: 120, height: 80 }} 
+        />
+        <Text style={styles.footerText}> Copyright © 2024</Text>
       </View>
-      </MyBackground>
+    </MyBackground>
   );
 }
 
@@ -192,7 +179,7 @@ const styles = StyleSheet.create({
   titleLogo: {
     width: 100, 
     height: 100, 
-    borderRadius:20,
+    borderRadius: 20,
   },
   title: {
     fontSize: 14, 
@@ -200,18 +187,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'black', 
     fontWeight: 'bold', 
-    padding:20,
-  },
-  forgetPassword: {
-    color: '#6FC39C', 
-    marginTop: 12, 
-    marginBottom: 35, 
-  },
-  footer: {
-    position: 'absolute', 
-    bottom: 10, 
-    alignSelf: 'center',
-    marginTop: 0,
+    padding: 20,
   },
   footerText: {
     color: 'grey', 

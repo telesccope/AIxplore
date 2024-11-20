@@ -86,21 +86,31 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.mapContainer}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-      >
-        <Marker
-          coordinate={{ latitude: 37.78825, longitude: -122.4324 }}
-          title="My Marker"
-          description="Some description"
-        />
-      </MapView>
+      <View style={styles.mapContainer}>
+        <MapView
+          style={StyleSheet.absoluteFillObject} // 地图填充整个 mapContainer 区域
+          initialRegion={{
+            latitude: 51.52155784686501,
+            longitude: -0.13736509439905842,
+            latitudeDelta: 0.02522,
+            longitudeDelta: 0.0821,
+          }}
+        >
+          <Marker
+            coordinate={{ latitude: 51.52155784686501, longitude: -0.13736509439905842 }}
+            title="My Marker"
+            description="Some description"
+          />
+        </MapView>
+
+        {/* 放大按钮覆盖在地图右下角 */}
+        <TouchableOpacity 
+          style={styles.zoomButton}
+          onPress={() => navigation.navigate('Map')} // 替换为跳转或其他功能
+        >
+          <Text style={styles.zoomButtonText}>⊕</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.questionContainer}>
         <QuestionCard question='Any good restaurant near by?'></QuestionCard>
@@ -131,8 +141,8 @@ const styles = StyleSheet.create({
     flex: 1,
     },
     mapContainer: {
-      flex: 1, 
-    },
+      height: '30%', 
+    },    
     questionContainer: {
       flex: 2, 
       flexDirection: 'row',
@@ -147,7 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 0,
+    marginVertical: 10,
     flex: 2,
   },
   newChatButton: {
@@ -162,6 +172,27 @@ const styles = StyleSheet.create({
   },
   newChatButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  zoomButton: {
+    position: 'absolute', // 定位到 mapContainer 的右下角
+    bottom: 10,          // 距离底部 10 像素
+    right: 10,           // 距离右边 10 像素
+    opacity: 0.8,
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 25,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    zIndex: 10,
+  },
+  zoomButtonText: {
+    color: '#black',
     fontSize: 16,
     fontWeight: 'bold',
   },

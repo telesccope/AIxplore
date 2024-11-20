@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 export const QuestionCard = ({ question }) => {
   return (
     <LinearGradient
-      colors={['#d7d7d7', '#d7d7d7', '#d7d7d7']}
+      colors={['#d3dfe4', '#dfdfdf', '#d7d7d7']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.questionBackground}
@@ -34,7 +34,7 @@ export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
 
   return (
     <LinearGradient
-      colors={['#d7d7d7', '#d7d7d7', '#d7d7d7']}
+      colors={['#dfdfdf', '#dfdfdf', '#efefef']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.background}

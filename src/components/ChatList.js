@@ -2,10 +2,10 @@ import React from 'react';
 import { FlatList, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import moment from 'moment';
 
-export const ChatListItem = ({ chat, onSelect, onDelete, style }) => (
+export const ChatListItem = ({ chat, onSelect }) => (
   <TouchableOpacity
     onPress={() => onSelect(chat.id)}
-    style={[styles.buttonContainer, style]}
+    style={styles.buttonContainer}
   >
     <View style={styles.textContainer}>
       <Text style={styles.buttonText}>{chat.name}</Text>
@@ -19,58 +19,50 @@ export const ChatListItem = ({ chat, onSelect, onDelete, style }) => (
   </TouchableOpacity>
 );
 
-const ChatList = ({ chats, onSelect, onDelete }) => {
-    return (
-      <FlatList
-        data={chats}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <ChatListItem chat={item} onSelect={onSelect} onDelete={onDelete} />
-        )}
-      />
-    );
-  };
+const ChatList = ({ chats, onSelect }) => {
+  return (
+    <FlatList
+      data={chats}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <ChatListItem chat={item} onSelect={onSelect} />
+      )}
+      contentContainerStyle={styles.listContainer}
+    />
+  );
+};
 
 const styles = StyleSheet.create({
-    buttonContainer: {
-      marginVertical: 10,
-      width: '80%',
-      alignSelf: 'center',
-      backgroundColor: '#007BFF',
-      padding: 10,
-      borderRadius: 5,
-    },
-    textContainer: {
-      flexDirection: 'column',
-    },
-    buttonText: {
-      color: '#fff',
-      textAlign: 'center',
-      fontWeight: 'bold',
-    },
-    infoContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 5,
-    },
-    messageCount: {
-      color: '#fff',
-      fontSize: 12,
-    },
-    lastUsed: {
-      color: '#fff',
-      fontSize: 12,
-    },
-    deleteButton: {
-      backgroundColor: '#FF3B30',
-      padding: 5,
-      borderRadius: 5,
-    },
-    deleteButtonText: {
-      color: '#fff',
-      fontSize: 12,
-      fontWeight: 'bold',
-    },
-  });
-  
+  listContainer: {
+    paddingVertical: 10,
+  },
+  buttonContainer: {
+    marginVertical: 5,
+    marginHorizontal: 20,
+    backgroundColor: '#007BFF',
+    padding: 15,
+    borderRadius: 8,
+  },
+  textContainer: {
+    flexDirection: 'column',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  messageCount: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  lastUsed: {
+    color: '#fff',
+    fontSize: 12,
+  },
+});
+
 export default ChatList;

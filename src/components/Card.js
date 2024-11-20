@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 export const QuestionCard = ({ question }) => {
   return (
     <LinearGradient
-      colors={['#CFF5E0','#CFF5E0','#CFF5E0']}
+      colors={['#d7d7d7', '#d7d7d7', '#d7d7d7']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.questionBackground}
@@ -34,31 +34,30 @@ export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
 
   return (
     <LinearGradient
-      colors={['#CFF5E0', '#CFF5E0', '#CFF5E0']}
+      colors={['#d7d7d7', '#d7d7d7', '#d7d7d7']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.background}
     >
       <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.fullTextInput}
+          multiline
+          placeholder="Type your message..."
+          value={text}
+          onChangeText={setText}
+          placeholderTextColor="#555555"
+        />
         {photoUri && (
-          <View style={styles.thumbnailContainer}>
-            <Image 
-              source={{ uri: photoUri }} 
-              style={styles.thumbnail} 
-            />
-          </View>
-        )}
-        <View style={styles.textInputContainer}>
-          <TextInput
-            style={styles.textInput}
-            multiline
-            placeholder="Type your message..."
-            value={text}
-            onChangeText={setText}
+          <Image 
+            source={{ uri: photoUri }} 
+            style={styles.thumbnail} 
           />
-          <Button title="Send" onPress={handleSend} />
-        </View>
+        )}
       </View>
+      <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+        <Icon name="send-outline" size={25} color="#000" />
+      </TouchableOpacity>
       <TouchableOpacity style={styles.cameraButton} onPress={onOpenCamera}>
         <Icon name="camera-outline" size={30} color="#000" />
       </TouchableOpacity>
@@ -66,16 +65,15 @@ export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   background: {
     borderRadius: 15,
     paddingVertical: 20,
     paddingHorizontal: 15,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     width: '90%',
-    height: "100%",
+    height: '90%',
     alignSelf: 'center',
     backgroundColor: '#ffffff',
     shadowColor: '#000',
@@ -102,31 +100,28 @@ const styles = StyleSheet.create({
     },
   inputContainer: {
     width: '100%',
-  },
-  thumbnailContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 10,
-  },
-  textInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-  },
-  textInput: {
     flex: 1,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    marginRight: 10,
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 10,
-    alignSelf: 'center',
+  fullTextInput: {
+    padding: 10,
+    borderRadius: 10,
   },
   thumbnail: {
     width: 70,
     height: 70,
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+  },
+  sendButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
   },
 });
+

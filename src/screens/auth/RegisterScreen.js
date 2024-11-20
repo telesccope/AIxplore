@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView,Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { MyInput } from '../components/Input'
-import { MyButton } from '../components/Button';
-import { userRegister, resetRegisterState } from '../actions/UserAction'
-import { MyBackground } from '../components/Background';
-import { fetchAllOptions } from '../actions/UserAction';
+import { MyInput } from '../../components/Input'
+import { MyButton } from '../../components/Button';
+import { userRegister, resetRegisterState } from '../../actions/UserAction'
+import { MyBackground } from '../../components/Background';
+import { fetchAllOptions } from '../../actions/UserAction';
 
 export default function RegisterScreen({navigation}) {
   // 获取登录相关的状态，确保匹配reducer中的属性

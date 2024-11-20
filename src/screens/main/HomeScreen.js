@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadChatHistory, setCurrentChat, addChat, deleteChat, getSystemReply,addMessage,addNewChat,handleChatMessages } from '../actions/ChatAction';
-import ChatList from '../components/ChatList';
-import { QuestionCard,HomeInputCard } from '../components/Card';
+import { loadChatHistory, setCurrentChat, addChat, deleteChat, getSystemReply,addMessage,addNewChat,handleChatMessages } from '../../actions/ChatAction';
+import ChatList from '../../components/ChatList';
+import { QuestionCard,HomeInputCard } from '../../components/Card';
 import MapView, { Marker } from 'react-native-maps';
 import moment from 'moment';
-import { openCamera } from '../actions/CameraAction';
-import { Menu, Provider, IconButton } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { openCamera } from '../../actions/CameraAction';
+import CustomMenu from '../../components/CustomMenu';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -19,28 +18,17 @@ const HomeScreen = ({ navigation }) => {
 
   const closeMenu = () => setMenuVisible(false);
 
+  const menuItems = [
+    { title: 'View Details', onPress: () => console.log('View Details pressed') },
+    { title: 'Share', onPress: () => console.log('Share pressed') },
+    { title: 'Report', onPress: () => console.log('Report pressed') },
+  ];
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          anchor={
-            <Icon
-              name="ellipsis-vertical"
-              size={24}
-              onPress={() => setMenuVisible(true)}
-              style={{ marginRight: 10 }}
-            />
-          }
-        >
-          <Menu.Item onPress={() => {}} title="View Details" />
-          <Menu.Item onPress={() => {}} title="Share" />
-          <Menu.Item onPress={() => {}} title="Report" />
-        </Menu>
-      ),
+      headerRight: () => <CustomMenu menuItems={menuItems} />,
     });
-  }, [navigation, menuVisible]);
+  }, [navigation, menuItems]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -55,8 +43,8 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSelectChat = (chatId) => {
     dispatch(setCurrentChat(chatId));
-    navigation.navigate('Chat');
-  };
+    navigation.navigate('Chat', { chatId }); // Pass chatId as a parameter
+  };  
 
   const handleNewChat = async (initialMessage, photoUri, dispatch, navigation) => {
     ////console.log("PhotoUri", photoUri);

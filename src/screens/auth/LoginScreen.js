@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { userLogin, setUser, userGoogleAuth } from '../actions/UserAction';
+import { userLogin, setUser, userGoogleAuth } from '../../actions/UserAction';
 import { useDispatch, useSelector } from 'react-redux';
-import { MyButton } from '../components/Button';
-import { MyInput } from '../components/Input';
-import { MyBackground } from '../components/Background';
+import { MyButton } from '../../components/Button';
+import { MyInput } from '../../components/Input';
+import { MyBackground } from '../../components/Background';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
@@ -37,12 +37,13 @@ function LoginScreen({ navigation }) {
       if (userInfo && userInfo.email) {
         if (!hasNavigatedRef.current) {
           hasNavigatedRef.current = true;
-          navigation.replace('Home');
+          console.log('Navigating to HomeDrawer');
+          navigation.replace('HomeDrawer');
         }
       }
     };
 
-    //checkLoginStatus();
+    checkLoginStatus();
   }, []);
 
   useEffect(() => {
@@ -51,7 +52,8 @@ function LoginScreen({ navigation }) {
       if (userinfo) {
         if (!hasNavigatedRef.current) {
           hasNavigatedRef.current = true;
-          navigation.replace('Home');
+          console.log('Navigating to HomeDrawer');
+          navigation.replace('HomeDrawer');
         }
       }
     };
@@ -139,7 +141,7 @@ function LoginScreen({ navigation }) {
     <MyBackground>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo.jpg')} 
+          source={require('../../../assets/logo.jpg')} 
           style={styles.titleLogo} 
         />
       </View>
@@ -162,7 +164,7 @@ function LoginScreen({ navigation }) {
       <MyButton title='Google Sign-In' text='Sign In with Google' onPress={handleGoogleSignIn}/>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo.jpg')} 
+          source={require('../../../assets/logo.jpg')} 
           style={{ width: 120, height: 80 }} 
         />
         <Text style={styles.footerText}> Copyright © 2024</Text>

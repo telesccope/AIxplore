@@ -25,8 +25,6 @@ const ChatWindow = ({ messages = [] }) => {
       }
     };
 
-    //console.log('item', item);
-
     return (
       <View style={[styles.messageContainer, isUserMessage ? styles.userMessage : styles.systemMessage]}>
         {item.type === 'image' ? (
@@ -42,11 +40,14 @@ const ChatWindow = ({ messages = [] }) => {
     );
   };
 
+  // Filter out null items
+  const filteredMessages = messages.filter(item => item !== null);
+
   return (
     <>
       <KeyboardAwareFlatList
         ref={flatListRef}
-        data={messages}
+        data={filteredMessages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         style={styles.chatContainer}
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#007aff',
+    backgroundColor: '#e5e5ea',
   },
   systemMessage: {
     alignSelf: 'flex-start',

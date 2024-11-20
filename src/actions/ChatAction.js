@@ -137,7 +137,7 @@ export const addNewChat = (initialMessage, dispatch, navigation) => {
 
   dispatch(setCurrentChat(newChatId));
   dispatch(addChat(newChat));
-  navigation.navigate('Chat');
+  navigation.navigate('Chat', { chatId: newChatId });
 
   if (userMessage) {
     dispatch(addMessage(newChatId, userMessage));

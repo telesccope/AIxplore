@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { updateResetEmail } from '../actions/UserActions';
-import { MyButton } from '../components/Button';
-import { MyInput, MyCodeInput } from '../components/Input';
-import { MyBackground } from '../components/Background';
-import { sendNotification, verifyCode, resetUserPassword } from '../actions/UserActions';
+import { updateResetEmail } from '../../actions/UserActions';
+import { MyButton } from '../../components/Button';
+import { MyInput, MyCodeInput } from '../../components/Input';
+import { MyBackground } from '../../components/Background';
+import { sendNotification, verifyCode, resetUserPassword } from '../../actions/UserActions';
 
 const ForgetScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");

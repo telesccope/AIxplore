@@ -5,6 +5,7 @@ const initialState = {
     loginloading: false,
     userinfo: null,
     loginerror: null, 
+    isAuthenticated: false
   };
   
 function loginReducer(state = initialState, action) {
@@ -20,6 +21,7 @@ function loginReducer(state = initialState, action) {
         ...state,
         loginloading: false,
         userinfo: action.payload.userinfo,
+        isAuthenticated: true
       };
     case UserTypes.USER_LOGIN_FAILURE:
       return {
@@ -34,7 +36,8 @@ function loginReducer(state = initialState, action) {
         ...state,
         userinfo: null,
         loading: false,
-        error: null
+        error: null,
+        isAuthenticated: false
       };
     default:
       return state;

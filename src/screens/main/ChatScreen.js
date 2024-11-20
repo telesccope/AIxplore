@@ -1,23 +1,38 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getSystemReply, addMessage, removeChat,handleChatMessages } from '../actions/ChatAction';
-import { HomeInputCard } from '../components/Card';
-import ChatWindow from '../components/ChatWindow';
-import { openCamera } from '../actions/CameraAction';
+import { getSystemReply, addMessage, removeChat, handleChatMessages, deleteChat } from '../../actions/ChatAction';
+import { HomeInputCard } from '../../components/Card';
+import ChatWindow from '../../components/ChatWindow';
+import { openCamera } from '../../actions/CameraAction';
 import { v4 as uuidv4 } from 'uuid';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Menu } from 'react-native-paper';
+import { setCurrentChat } from '../../actions/ChatAction';
 
-const ChatScreen = ({ navigation }) => {
+const ChatScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
+  const { chatId } = route.params;
   const chatState = useSelector(state => state.chatReducer);
   const [photoUri, setPhotoUri] = useState(null);
-
   const [menuVisible, setMenuVisible] = useState(false);
+
+  useEffect(() => {
+    if (chatId) {
+      dispatch(setCurrentChat(chatId));
+    }
+  }, [chatId, dispatch]);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <Icon
+          name="arrow-back"
+          size={24}
+          onPress={() => navigation.goBack()}
+          style={{ marginLeft: 10 }}
+        />
+      ),
       headerRight: () => (
         <Menu
           visible={menuVisible}
@@ -33,51 +48,47 @@ const ChatScreen = ({ navigation }) => {
         >
           <Menu.Item onPress={() => {}} title="Option 1" />
           <Menu.Item onPress={() => {}} title="Option 2" />
-          <Menu.Item onPress={() => {}} title="Option 3" />
+          <Menu.Item onPress={() => handleDeleteChat()} title="Delete Chat" />
         </Menu>
       ),
     });
   }, [navigation, menuVisible]);
 
-  //console.log("chatReducer state:", chatState);
-  const currentChatId = useSelector(state => state.chatReducer.currentChatId);
+  const handleDeleteChat = () => {
+    dispatch(deleteChat(chatId));
+    navigation.navigate('Home');
+  };
+
   const currentMessages = useSelector(state => {
-    const currentChat = state.chatReducer.chatWindows[state.chatReducer.currentChatId];
+    const currentChat = state.chatReducer.chatWindows[chatId];
     return currentChat ? currentChat.messages : [];
   });
-  //console.log("currentMessages", currentMessages);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
       const isNewChat = currentMessages.length === 0;
       if (isNewChat) {
-        dispatch(removeChat(currentChatId));
+        dispatch(removeChat(chatId));
       }
     });
 
     return unsubscribe;
-  }, [navigation, currentChatId, currentMessages, dispatch]);
+  }, [navigation, chatId, currentMessages, dispatch]);
 
   const handleNewChat = async (initialMessage) => {
     if (!initialMessage && !photoUri) {
       return;
     }
-    console.log("initialMessage", initialMessage);
     try {
-      console.log("Before userMessage log");
       const userMessage = initialMessage ? { id: uuidv4(), text: initialMessage, sender: 'user', type: 'text' } : null;
-      console.log("userMessage", userMessage);
-      dispatch(addMessage(currentChatId, userMessage));
-      await handleChatMessages(currentChatId, userMessage, photoUri, dispatch);
+      dispatch(addMessage(chatId, userMessage));
+      await handleChatMessages(chatId, userMessage, photoUri, dispatch);
     } catch (error) {
       console.error("Error in handleNewChat:", error);
     }    
   };
 
-  // Wrapper function for sending messages
   const handleSend = (message) => {
-
-    
     handleNewChat(message);
     setPhotoUri(null);
   };

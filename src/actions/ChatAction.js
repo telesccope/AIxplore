@@ -59,6 +59,7 @@ export const deleteChat = (chatId) => ({
 });
 
 export const getSystemReply = async (chatMessages, chatId, messageId) => {
+  console.log('getSystemReply received:', Object.keys(chatMessages));
   try {
     const messages = await Promise.all(chatMessages.map(async (msg) => {
       if (msg.type === 'image') {
@@ -85,18 +86,23 @@ export const getSystemReply = async (chatMessages, chatId, messageId) => {
           content: [
             {
               type: 'text',
-              text: chatMessages.some(m => m.type === 'text') ? null : 'Describe the image',
+              text: 'What is in this image?',
             },
             {
               type: 'image_url',
               image_url: { url: `data:image/jpeg;base64,${imgB64Str}` }
             }
-          ].filter(item => item.text !== null)
+          ]
         };
-      } else {
+      } else if (msg.type === 'text') {
         return {
           role: msg.role,
-          content: msg.content
+          content: [
+            {
+              type: 'text',
+              text: msg.content
+            }
+          ]
         };
       }
     }));
@@ -115,7 +121,7 @@ export const getSystemReply = async (chatMessages, chatId, messageId) => {
     const responseData = response.data;
     const message = {
       type: 'text',
-      text: responseData.choices[0]?.message?.content || "No response"
+      content: responseData.choices[0]?.message?.content || "No response"
     };
 
     return message;
@@ -125,9 +131,10 @@ export const getSystemReply = async (chatMessages, chatId, messageId) => {
   }
 };
 
+
 export const addNewChat = (initialMessage, dispatch, navigation) => {
   const newChatId = Date.now().toString();
-  const userMessage = initialMessage ? { id: uuidv4(), text: initialMessage, sender: 'user', type: 'text' } : null;
+  const userMessage = initialMessage ? { id: uuidv4(), content: initialMessage, role: 'user', type: 'text' } : null;
   const newChat = {
     id: newChatId,
     name: 'New Chat',
@@ -175,7 +182,7 @@ export const handleChatMessages = async (newChatId, userMessage, photoUri, dispa
   if (userMessage) {
     chatMessages.push({
       role: 'user',
-      content: userMessage.text,
+      content: userMessage.content,
       type: 'text',
     });
   }

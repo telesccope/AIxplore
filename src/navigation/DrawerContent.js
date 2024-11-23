@@ -19,7 +19,7 @@ function CustomDrawerContent(props) {
     { title: 'Settings', onPress: () => navigation.navigate('Settings') },
     { title: 'Profile', onPress: () => navigation.navigate('Profile') }
   ];
-
+  console.log(Object.entries(chatWindows),'customDrawer')
   return (
     <DrawerContentScrollView {...props}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
@@ -30,11 +30,11 @@ function CustomDrawerContent(props) {
         <CustomMenu menuItems={menuItems} />
       </View>
       
-      {Object.entries(chatWindows).map(([chatId, chat]) => (
+      {Object.entries(chatWindows).map(([_, chat]) => (
         <DrawerItem
-          key={chatId}
-          label={`Chat ${chatId}`}
-          onPress={() => handleNavigateToChat(chatId)}
+          key={chat.id} // Use the internal id as the key
+          label={chat.title.replace(/^"|"$/g, '')}
+          onPress={() => handleNavigateToChat(chat.id)} // Pass the internal id to the handler
         />
       ))}
     </DrawerContentScrollView>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { userLogin, setUser, userGoogleAuth } from '../../actions/UserAction';
+import { userLogin, setUser, userGoogleAuth, fetchUserChats, setChats, updateApiHeaders } from '../../actions/UserAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { MyButton } from '../../components/Button';
 import { MyInput } from '../../components/Input';
@@ -9,13 +9,14 @@ import { MyBackground } from '../../components/Background';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
+
 function LoginScreen({ navigation }) {
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const userLoginState = useSelector(state => state.loginReducer);
   const { loginloading, loginerror, userinfo } = userLoginState; 
-  console.log('userinfo', userinfo);
+  console.log('userinfo state', userinfo);
   const hasNavigatedRef = useRef(false);
 
   useFocusEffect(
@@ -32,34 +33,48 @@ function LoginScreen({ navigation }) {
     });
 
     const checkLoginStatus = async () => {
-      const userInfo = await getUserInfo();
-      dispatch(setUser(userInfo));
-      if (userInfo && userInfo.email) {
-        if (!hasNavigatedRef.current) {
-          hasNavigatedRef.current = true;
-          console.log('Navigating to HomeDrawer');
-          navigation.replace('HomeDrawer');
+      try {
+        const userInfo = await getUserInfo();
+        console.log('userInfo', userInfo);
+    
+        if (userInfo && userInfo.email) {
+          dispatch(setUser(userInfo));
+    
+          const chats = await getChatsFromStorage();
+          console.log('chats', chats);
+          dispatch(setChats(chats)); 
+    
+          if (!hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+          }
         }
+      } catch (error) {
+        console.error('Error checking login status:', error);
       }
     };
+    
+    
 
     checkLoginStatus();
   }, []);
 
-  useEffect(() => {
-    saveUserInfo(userinfo);
-    const fetchData = async () => {
-      if (userinfo) {
-        if (!hasNavigatedRef.current) {
-          hasNavigatedRef.current = true;
-          console.log('Navigating to HomeDrawer');
-          navigation.replace('HomeDrawer');
-        }
+  const fetchAdditionalData = async () => {
+    try {
+      const response = await dispatch(fetchUserChats());
+      const chats = response.payload;
+  
+      if (chats.length === 0) {
+        console.log('No chats available.');
+        // 处理空数据的逻辑，比如显示提示信息
+      } else {
+        await saveChatsToStorage(chats);
       }
-    };
-
-    fetchData();
-  }, [userinfo]);
+    } catch (error) {
+      console.error('Failed to fetch chats:', error);
+    }
+  };
+  
+  
 
   useEffect(() => {
     if (loginerror) {
@@ -68,6 +83,7 @@ function LoginScreen({ navigation }) {
   }, [loginerror]); 
 
   const saveUserInfo = async (userInfo) => {
+    console.log('saveUserInfo', userInfo);
     try {
       const jsonValue = JSON.stringify(userInfo);
       await AsyncStorage.setItem('@user_info', jsonValue);
@@ -76,6 +92,15 @@ function LoginScreen({ navigation }) {
     } catch (e) {}
   };
 
+  const saveChatsToStorage = async (chats) => {
+    try {
+      const jsonValue = JSON.stringify(chats);
+      await AsyncStorage.setItem('@chat_records', jsonValue);
+    } catch (e) {
+      console.error('Failed to save chats to storage:', e);
+    }
+  };
+  
   const getUserInfo = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@user_info');
@@ -84,6 +109,16 @@ function LoginScreen({ navigation }) {
       return null;
     }
   };
+
+  const getChatsFromStorage = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@chat_records');
+      return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch (e) {
+      console.error('Failed to load chats from storage:', e);
+      return [];
+    }
+  };  
 
   const requestLocationPermission = async () => {
     let { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
@@ -113,8 +148,23 @@ function LoginScreen({ navigation }) {
       return;
     }
     setErrorMessages({});
-    dispatch(userLogin(username, password));
+    
+    try {
+      const response = await dispatch(userLogin(username, password));
+      console.log('Action Response2:', response);
+      const userInfo = response.userinfo;
+      console.log('Login Response:', userInfo);
+      if (userInfo) {
+        await saveUserInfo(userInfo);
+        await dispatch(updateApiHeaders());
+        await fetchAdditionalData();
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
+  
+  
 
   const handleRegister = () => {
     navigation.navigate('Register');
@@ -122,20 +172,37 @@ function LoginScreen({ navigation }) {
 
   const handleGoogleSignIn = async () => {
     try {
-        console.log('Google Sign-In');
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
-        const idToken = userInfo.data.idToken;
+      console.log('Google Sign-In');
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('user info', userInfo);
+  
+      const idToken = userInfo.data.idToken;
+      if (!idToken) {
+        console.error('idToken is undefined');
+        return;
+      }
+      
+      console.log('idToken', idToken);
+  
+      const response = await dispatch(userGoogleAuth(idToken));
+      console.log('Google Sign-In Response:', response);
+      const user = response.userinfo;
+      if (user) {
+        await saveUserInfo(user);
+        await dispatch(updateApiHeaders());
+      }
 
-        console.log('user info', userInfo);
+      if (response) {
+        await fetchAdditionalData();
+      }
 
-        dispatch(userGoogleAuth(idToken));
+      
     } catch (error) {
-        console.error('Error during sign-in:', error);
-        console.error('Error details:', error.message, error.code);
+      console.error('Error during sign-in:', error);
     }
-};
-
+  };
+  
 
   return (
     <MyBackground>

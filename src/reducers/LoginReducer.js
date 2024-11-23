@@ -10,6 +10,8 @@ const initialState = {
   
 function loginReducer(state = initialState, action) {
   switch (action.type) {
+    case UserTypes.USER_LOGOUT:
+      return initialState; 
     case UserTypes.USER_LOGIN_REQUEST:
       return {
         ...state,
@@ -17,6 +19,7 @@ function loginReducer(state = initialState, action) {
         loginerror: null, 
       };
     case UserTypes.USER_LOGIN_SUCCESS:
+      console.log('action.payload.userinfo', action.payload.userinfo);
       return {
         ...state,
         loginloading: false,
@@ -29,8 +32,6 @@ function loginReducer(state = initialState, action) {
         loginloading: false,
         loginerror: action.payload.loginerror, 
       };
-    case UserTypes.USER_LOGOUT:
-      return initialState;
     case UserTypes.USER_LOGOUT_RESET:
       return {
         ...state,

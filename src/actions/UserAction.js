@@ -2,6 +2,8 @@ import { Alert } from 'react-native';
 import api from '../constants/api';  // 直接导入 api 实例
 import { BASE_URL } from '../constants/api';
 import * as UserTypes from '../types/UserTypes';
+import * as ChatTypes from '../types/ChatTypes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const userLogoutReset = () => {
   return {
@@ -20,12 +22,16 @@ export function userLogin(username, password) {
 
     try {
       const response = await api.post('/users/login', postData);
+      console.log('Login Response first:', response.data);
       dispatch({
         type: UserTypes.USER_LOGIN_SUCCESS,
         payload: {
-          userinfo: response.data.userinfo,
+          userinfo: response.data,
         }
       });
+      // 返回成功响应
+      console.log('Action Response:', response.data);
+      return response.data;
     } catch (error) {
       let errorMessage = error.response ? error.response.data.message : error.message;
       Alert.alert('Login Failure', errorMessage);
@@ -35,9 +41,68 @@ export function userLogin(username, password) {
           loginerror: errorMessage,
         }
       });
+      // 返回失败响应
+      return { success: false, error: errorMessage };
     }
   };
 }
+
+
+export function fetchUserChats() {
+  return async (dispatch) => {
+    dispatch({ type: ChatTypes.FETCH_CHATS_REQUEST });
+
+    try {
+      const response = await api.get('/users/chats');
+      const chatsObject = response.data;
+      console.log('Fetched chats:', chatsObject);
+
+      // 将对象转换为数组
+      const chatsArray = Object.values(chatsObject);
+      console.log('Chats array:', chatsArray);
+      dispatch({
+        type: ChatTypes.FETCH_CHATS_SUCCESS,
+        payload: chatsArray,
+      });
+
+      return { payload: chatsArray };
+    } catch (error) {
+      const errorMessage = error.response ? error.response.data.message : error.message;
+      console.error('Error fetching chats:', errorMessage);
+
+      dispatch({
+        type: ChatTypes.FETCH_CHATS_FAILURE,
+        payload: {
+          fetchError: errorMessage,
+        },
+      });
+
+      throw error;
+    }
+  };
+}
+
+
+export const setChats = (chats) => ({
+  type: 'SET_CHATS',
+  payload: chats,
+});
+
+export const updateApiHeaders = () => {
+  return async (dispatch) => {
+    try {
+      console.log('Updating API headers');
+      const token = await AsyncStorage.getItem('@access_token');
+      console.log('Access token:', token);
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('API headers updated');
+      }
+    } catch (error) {
+      console.error('Failed to update API headers:', error);
+    }
+  };
+};
 
 export const userGoogleAuth = (idToken) => {
   return async (dispatch) => {
@@ -45,12 +110,14 @@ export const userGoogleAuth = (idToken) => {
 
     try {
       const response = await api.post('/auth/google-signin', { idToken });
+      console.log('Google Signin Response:', response.data);
       dispatch({
         type: UserTypes.USER_LOGIN_SUCCESS,
         payload: {
           userinfo: response.data.userinfo,
         }
       });
+      return response.data; // 返回响应数据
     } catch (error) {
       let errorMessage = error.response ? error.response.data.message : error.message;
       Alert.alert('Login Failure', errorMessage);
@@ -60,9 +127,11 @@ export const userGoogleAuth = (idToken) => {
           loginerror: errorMessage,
         }
       });
+      throw error; // 抛出错误以便在调用处捕获
     }
   };
 };
+
 
 export const setUser = (userInfo) => (dispatch) => {
   dispatch({
@@ -73,59 +142,39 @@ export const setUser = (userInfo) => (dispatch) => {
   });
 };
 
-export const userLogout = () => ({ type: 'USER_LOGOUT' });
-
-export function userNextStep(email, code, Registerpassword, Confirmpassword) {
-  return (dispatch) => {
-    dispatch({
-      type: UserTypes.USER_NEXTSTEP_SUCCESS,
-      payload: {
-        userinfo: {
-          email,
-          code,
-          Registerpassword,
-          Confirmpassword,
-        },
-      },
-    });
-  };
-}
-
-export function userRegister(
-  Country, 
-  AgeGroup, 
-  Gender, 
-  EthicalGroup, 
-  Occupation, 
-  Disability, 
-  Postcode, 
-  Organisation, 
-  TypeOfVehicle
-) {
-  return async (dispatch, getState) => {
-    dispatch({ type: UserTypes.USER_REGISTER_REQUEST });
+export const userLogout = () => async (dispatch) => {
+  try {
+    // 清空缓存
+    await AsyncStorage.removeItem('@user_info');
+    await AsyncStorage.removeItem('@access_token');
+    await AsyncStorage.removeItem('@refresh_token');
+    await AsyncStorage.removeItem('@chat_records');
     
-    const { userinfo } = getState().nextstepReducer;
+    // 触发 reducer 清空状态
+    dispatch({ type: 'USER_LOGOUT' });
+  } catch (error) {
+    console.error('Failed to clear cache:', error);
+  }
+};
 
+
+export const updateUserInfo = (userinfo) => ({
+  type: UserTypes.USER_REGISTER_UPDATE_INFOO,
+  payload: userinfo,
+});
+
+export function userRegister(email, code, Registerpassword, Confirmpassword) {
+  return async (dispatch) => {
     // 构建注册数据
     const registerData = {
-      email: userinfo.email,
-      code: userinfo.code,
-      Registerpassword: userinfo.Registerpassword,
-      Confirmpassword: userinfo.Confirmpassword,
-      Country: Country,
-      AgeGroup: AgeGroup,
-      Gender: Gender,
-      EthicalGroup: EthicalGroup,
-      Occupation: Occupation,
-      Disability: Disability,
-      Postcode: Postcode,
-      Organisation: Organisation,
-      TypeOfVehicle: TypeOfVehicle,
+      email: email,
+      code: code,
+      Registerpassword: Registerpassword,
+      Confirmpassword: Confirmpassword,
     };
-    ////console.log(registerData,'*******')
+
     try {
-      // 先调用注册接口
+      // 调用注册接口
       const registerResponse = await api.post('/users/register', {
         email: registerData.email,
         code: registerData.code,
@@ -133,27 +182,32 @@ export function userRegister(
         Confirmpassword: registerData.Confirmpassword,
       });
 
-      // 注册成功后，继续调用更新接口
-      const updateResponse = await api.post('/users/update', registerData);
       Alert.alert('Success', registerResponse.data.message);
-      // 更新成功后，派发成功动作
+
+      // 派发成功动作
       dispatch({
         type: UserTypes.USER_REGISTER_SUCCESS,
-        payload: {
-          userinfo: updateResponse.data.userinfo,
-        },
       });
 
+      // 返回成功标志
+      return Promise.resolve(true);
+
     } catch (error) {
-      // 处理错误
-      Alert.alert('Failure', error.message);
+      // 提取具体的错误信息
+      const errorMessage = error.response && error.response.data && error.response.data.message
+        ? error.response.data.message
+        : error.message;
+
+      Alert.alert('Failure', errorMessage);
+
       dispatch({
         type: UserTypes.USER_REGISTER_FAILURE,
-        payload: error.response ? error.response.data : error.message,
+        payload: errorMessage,
       });
     }
   };
 }
+
 
 const resetPasswordRequest = () => ({
   type: UserTypes.RESET_PASSWORD_REQUEST
@@ -201,12 +255,6 @@ export const updateResetEmail = (email) => ({
 export const resetRegisterState = () => {
   return {
     type: UserTypes.USER_REGISTER_RESET
-  };
-};
-
-export const resetNextStepState = () => {
-  return {
-    type: UserTypes.USER_NEXTSTEP_RESET
   };
 };
 

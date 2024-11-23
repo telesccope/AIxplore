@@ -9,7 +9,7 @@ function CustomMenu({ menuItems }) {
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
-
+  console.log("menuItems", menuItems);
   return (
     <View style={{ alignItems: 'flex-end' }}>
       <Menu

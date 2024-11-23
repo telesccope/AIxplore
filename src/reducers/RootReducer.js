@@ -2,11 +2,13 @@
 import { combineReducers } from 'redux';
 import chatReducer from './ChatReducer.js';
 import loginReducer from './LoginReducer.js';
+import registerReducer from './RegisterReducer.js';
 
 // 创建一个组合所有 reducer 的根级别 reducer
 const appReducer = combineReducers({
   chatReducer: chatReducer,
   loginReducer: loginReducer,
+  registerReducer: registerReducer,
 });
 
 // 创建 rootReducer 以处理全局的 RESET_STATE 逻辑

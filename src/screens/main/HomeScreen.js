@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, KeyboardAvoidingView,} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadChatHistory, setCurrentChat, addChat, deleteChat, getSystemReply,addMessage,addNewChat,handleChatMessages } from '../../actions/ChatAction';
+import { loadChatHistory, setCurrentChat,  deleteChat, addNewChat,handleChatMessages } from '../../actions/ChatAction';
+import { userLogout } from '../../actions/UserAction';
 import ChatList from '../../components/ChatList';
 import { QuestionCard,HomeInputCard } from '../../components/Card';
 import MapView, { Marker } from 'react-native-maps';
@@ -10,6 +11,7 @@ import { openCamera } from '../../actions/CameraAction';
 import CustomMenu from '../../components/CustomMenu';
 
 const HomeScreen = ({ navigation }) => {
+  
   const dispatch = useDispatch();
   const chatWindows = useSelector(state => state.chatReducer.chatWindows);
   const [photoUri, setPhotoUri] = useState(null);
@@ -18,10 +20,20 @@ const HomeScreen = ({ navigation }) => {
 
   const closeMenu = () => setMenuVisible(false);
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(userLogout());
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+  
+
   const menuItems = [
     { title: 'View Details', onPress: () => console.log('View Details pressed') },
     { title: 'Share', onPress: () => console.log('Share pressed') },
     { title: 'Report', onPress: () => console.log('Report pressed') },
+    { title: 'Logout', onPress: handleLogout },
   ];
 
   React.useLayoutEffect(() => {
@@ -29,17 +41,6 @@ const HomeScreen = ({ navigation }) => {
       headerRight: () => <CustomMenu menuItems={menuItems} />,
     });
   }, [navigation, menuItems]);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        await dispatch(loadChatHistory());
-      } catch (error) {
-        //console.error('Error loading chat history:', error);
-      }
-    };
-    fetchHistory();
-  }, [dispatch]);
 
   const handleSelectChat = (chatId) => {
     dispatch(setCurrentChat(chatId));
@@ -76,16 +77,16 @@ const HomeScreen = ({ navigation }) => {
       setPhotoUri(uri);
     }
   };
-
-
+  console.log('chatWindows', chatWindows, Object.values(chatWindows));
   const chatsWithLastUsed = Object.values(chatWindows).map(chat => ({
     ...chat,
     lastUsed: chat.lastUsed || moment().toISOString(),
   }));
   
+  
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior='height'>
       <View style={styles.mapContainer}>
         <MapView
           style={StyleSheet.absoluteFillObject} // 地图填充整个 mapContainer 区域
@@ -131,7 +132,7 @@ const HomeScreen = ({ navigation }) => {
           photoUri={photoUri}
           />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

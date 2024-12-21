@@ -8,7 +8,7 @@ import { MyInput } from '../../components/Input';
 import { MyBackground } from '../../components/Background';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-
+import { saveChatsToStorage } from '../../actions/ChatAction';
 
 function LoginScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -29,7 +29,8 @@ function LoginScreen({ navigation }) {
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '842353906367-e4gvdn4rhhpl2j8a25l3jgbtaqp93s46.apps.googleusercontent.com'
+      iosClientId: '20867869911-05eeb782e669b4f3991492.apps.googleusercontent.com', // 替换为你的 iOS 客户端 ID
+      webClientId: '842353906367-e4gvdn4rhhpl2j8a25l3jgbtaqp93s46.apps.googleusercontent.com', // 替换为你的 Web 客户端 ID（如果需要后端验证）
     });
 
     const checkLoginStatus = async () => {
@@ -38,6 +39,7 @@ function LoginScreen({ navigation }) {
         console.log('userInfo', userInfo);
     
         if (userInfo && userInfo.email) {
+          //handleLocationAction();
           dispatch(setUser(userInfo));
     
           const chats = await getChatsFromStorage();
@@ -91,15 +93,6 @@ function LoginScreen({ navigation }) {
       await AsyncStorage.setItem('@refresh_token', userInfo.refresh_token);
     } catch (e) {}
   };
-
-  const saveChatsToStorage = async (chats) => {
-    try {
-      const jsonValue = JSON.stringify(chats);
-      await AsyncStorage.setItem('@chat_records', jsonValue);
-    } catch (e) {
-      console.error('Failed to save chats to storage:', e);
-    }
-  };
   
   const getUserInfo = async () => {
     try {
@@ -120,22 +113,13 @@ function LoginScreen({ navigation }) {
     }
   };  
 
-  const requestLocationPermission = async () => {
-    let { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-    if (foregroundStatus !== 'granted') {
-      Alert.alert('Permission Denied', 'Foreground location permission denied');
-      return false;
-    }
-    console.log("Successfully obtained front location permissions");
-    return true; 
-  };
-
   const [errorMessages, setErrorMessages] = useState({
     username: '',
     password: ''
   });
 
   const handleLogin = async () => { 
+    
     let errors = {};
     if (!username) {
       errors.username = 'Username is required.';
@@ -155,9 +139,16 @@ function LoginScreen({ navigation }) {
       const userInfo = response.userinfo;
       console.log('Login Response:', userInfo);
       if (userInfo) {
+        //await handleLocationAction();
         await saveUserInfo(userInfo);
         await dispatch(updateApiHeaders());
-        await fetchAdditionalData();
+        
+        // 从缓存中获取聊天记录
+        const cachedChats = await getChatsFromStorage();
+        if (cachedChats.length === 0) {
+          // 只有在没有缓存记录时才调用 fetchAdditionalData
+          await fetchAdditionalData();
+        }
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -192,17 +183,18 @@ function LoginScreen({ navigation }) {
         await saveUserInfo(user);
         await dispatch(updateApiHeaders());
       }
-
-      if (response) {
+  
+      // 从缓存中获取聊天记录
+      const cachedChats = await getChatsFromStorage();
+      if (cachedChats.length === 0) {
+        // 只有在没有缓存记录时才调用 fetchAdditionalData
         await fetchAdditionalData();
       }
-
-      
+  
     } catch (error) {
       console.error('Error during sign-in:', error);
     }
   };
-  
 
   return (
     <MyBackground>
@@ -229,13 +221,6 @@ function LoginScreen({ navigation }) {
       <MyButton title='Login' text='Sign In' onPress={handleLogin}/>
       <MyButton title='Register' text='Create an Account' onPress={handleRegister}/>
       <MyButton title='Google Sign-In' text='Sign In with Google' onPress={handleGoogleSignIn}/>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../../../assets/logo.jpg')} 
-          style={{ width: 120, height: 80 }} 
-        />
-        <Text style={styles.footerText}> Copyright © 2024</Text>
-      </View>
     </MyBackground>
   );
 }

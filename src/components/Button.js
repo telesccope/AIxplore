@@ -2,19 +2,21 @@ import LinearGradient from 'react-native-linear-gradient';
 import { StyleSheet, Text, TouchableOpacity,View,Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-export const MyButton = ({text, onPress}) =>(
-    <TouchableOpacity style={BottonStyles.buttonContainer}
-        onPress={onPress}
-      >
-      <LinearGradient
-          colors={['#7AD0CD', '#93DBC8', '#A9E5C2']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={BottonStyles.button}
-        >
-        <Text style={BottonStyles.buttonText}>{text}</Text>
-        </LinearGradient>
-      </TouchableOpacity>)
+export const MyButton = ({ text, onPress }) => (
+  <TouchableOpacity
+    style={BottonStyles.buttonContainer}
+    onPress={onPress}
+  >
+    <LinearGradient
+      colors={['#4A90E2', '#6BADED', '#8CC7F6']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={BottonStyles.button}
+    >
+      <Text style={BottonStyles.buttonText}>{text}</Text>
+    </LinearGradient>
+  </TouchableOpacity>
+);
 
 export const HomeButton = ({text, onPress, colors}) =>(
   <TouchableOpacity style={HomeBottonStyles.buttonContainer}
@@ -70,35 +72,27 @@ export const ProductButton = ({ name, price, quantity, imageUrl }) => (
     </View>
 );
 
+
+
 const BottonStyles = StyleSheet.create({
-  button: {
-    paddingVertical: 15, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderRadius: 20,
-  },
   buttonContainer: {
-    width: '95%', 
-    borderRadius: 28, 
-    overflow: 'hidden', 
-    paddingVertical:16,
+    width: '85%', // 确保按钮宽度占据父容器的大部分
+    alignSelf: 'center', // 水平居中
+    marginVertical: 10, // 增加上下间距
+  },
+  button: {
+    height: 50, // 明确设置按钮高度
+    justifyContent: 'center', // 垂直居中
+    alignItems: 'center', // 水平居中
+    borderRadius: 20, // 圆角
   },
   buttonText: {
-    color: 'white', 
+    color: 'white',
     fontSize: 18,
-    fontWeight:'bold' 
+    fontWeight: 'bold',
   },
-  SelectButton: {
-    height: 50, 
-    width: '20%',
-    marginBottom: 10, 
-    marginLeft: 20,
-    justifyContent: 'center',
-  },
-  FilterButton: {
+});
 
-  },
-  })
 const HomeBottonStyles = StyleSheet.create({
   button: {
     paddingVertical: 15, 

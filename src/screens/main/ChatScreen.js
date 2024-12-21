@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { getSystemReply, addMessage, removeChat, handleChatMessages, deleteChat } from '../../actions/ChatAction';
+import { getSystemReply, addMessage, removeChat, handleChatMessages, deleteChat, processImage } from '../../actions/ChatAction';
 import { HomeInputCard } from '../../components/Card';
 import ChatWindow from '../../components/ChatWindow';
 import { openCamera } from '../../actions/CameraAction';
-import { v4 as uuidv4 } from 'uuid';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Menu } from 'react-native-paper';
 import { setCurrentChat } from '../../actions/ChatAction';
 
 const ChatScreen = ({ navigation, route }) => {
-  console.log('route', route);
   const dispatch = useDispatch();
   const { chatId } = route.params;
-  console.log('chatId', chatId);
   const chatState = useSelector(state => state.chatReducer);
-  console.log('chatState', chatState);
-
-  const chatwindow = chatState.chatWindows 
-    ? Object.values(chatState.chatWindows).find(window => window.id === chatId)
-    : null;
-
-  console.log('chatwindow', chatwindow);
-
+  console.log('chatState:***', chatState);
+  const chatwindow = useSelector(state => {
+    const chatWindows = state.chatReducer.chatWindows;
+    return Object.values(chatWindows).find(window => window.id === chatId) || null;
+  });
+  
+  
+  console.log('chatwindow:***', chatwindow);
   const currentMessages = chatwindow ? chatwindow.messages : [];
-  console.log('currentMessages', currentMessages);
-
-
 
   const [photoUri, setPhotoUri] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -38,11 +32,14 @@ const ChatScreen = ({ navigation, route }) => {
     }
   }, [chatId, dispatch]);
 
+  // 动态设置标题，当 chatwindow 或其 title 更新时触发
   React.useLayoutEffect(() => {
-    const title = chatwindow ? chatwindow.title.replace(/^"|"$/g, '') : 'Chat';
+    const title = chatwindow && typeof chatwindow.title === 'string' && chatwindow.title.trim() !== ''
+      ? chatwindow.title.replace(/^"|"$/g, '') // 去掉可能的引号
+      : 'New Chat'; // 默认标题
   
     navigation.setOptions({
-      headerTitle: title, // Set the title from chatwindow
+      headerTitle: title, // 动态设置标题
       headerLeft: () => (
         <Icon
           name="arrow-back"
@@ -64,13 +61,13 @@ const ChatScreen = ({ navigation, route }) => {
             />
           }
         >
-        <Menu.Item onPress={() => { setMenuVisible(false); /* Option 1 action */ }} title="Option 1" />
-        <Menu.Item onPress={() => { setMenuVisible(false); /* Option 2 action */ }} title="Option 2" />
-        <Menu.Item onPress={() => { setMenuVisible(false); handleDeleteChat(); }} title="Delete Chat" />
+          <Menu.Item onPress={() => { setMenuVisible(false); /* Option 1 action */ }} title="Option 1" />
+          <Menu.Item onPress={() => { setMenuVisible(false); /* Option 2 action */ }} title="Option 2" />
+          <Menu.Item onPress={() => { setMenuVisible(false); handleDeleteChat(); }} title="Delete Chat" />
         </Menu>
       ),
     });
-  }, [navigation, menuVisible, chatwindow]);
+  }, [navigation, menuVisible, chatwindow]); // 依赖 chatwindow 确保动态更新标题
   
 
   const handleDeleteChat = () => {
@@ -89,24 +86,11 @@ const ChatScreen = ({ navigation, route }) => {
     return unsubscribe;
   }, [navigation, chatId, currentMessages, dispatch]);
 
-  const handleNewChat = async (initialMessage) => {
-    if (!initialMessage && !photoUri) {
-      return;
-    }
-    try {
-      const userMessage = initialMessage ? { id: uuidv4(), content: initialMessage, role: 'user', type: 'text' } : null;
-      dispatch(addMessage(chatId, userMessage));
-      await handleChatMessages(chatId, userMessage, photoUri, dispatch);
-    } catch (error) {
-      console.error("Error in handleNewChat:", error);
-    }    
-  };
-
-  const handleSend = (message) => {
-    handleNewChat(message);
+  const handleSend = async (message) => {
+    dispatch(handleChatMessages(chatId, message, photoUri));
     setPhotoUri(null);
   };
-
+  
   const handleCameraOpen = async () => {
     const uri = await openCamera();
     if (uri) {
@@ -124,7 +108,7 @@ const ChatScreen = ({ navigation, route }) => {
             onSend={handleSend} 
             onOpenCamera={handleCameraOpen}
             photoUri={photoUri}
-            />
+        />
       </View>
     </View>
   );

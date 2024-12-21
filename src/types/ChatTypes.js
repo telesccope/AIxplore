@@ -11,3 +11,5 @@ export const ADD_MESSAGE = 'ADD_MESSAGE'
 export const REMOVE_CHAT = 'REMOVE_CHAT'
 export const DELETE_CHAT = 'DELETE_CHAT'
 export const LOAD_HISTORY = 'LOAD_HISTORY'
+export const UPDATE_CHAT = 'UPDATE_CHAT'
+export const UPDATE_LOCATION = 'UPDATE_LOCATION';

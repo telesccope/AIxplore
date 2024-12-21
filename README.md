@@ -20,6 +20,17 @@ yarn start
 
 ./gradlew assembleRelease
 adb logcat '*:S' ReactNative:V ReactNativeJS:V
+
+
+rm -rf ~/.gradle/caches
+rm -rf ~/.gradle/kotlin-dsl
+rm -rf ~/.gradle/wrapper
+rm -rf android/.gradle
+rm -rf android/app/.cxx
+
+cd android
+./gradlew --stop
+./gradlew clean
 ```
 
 ## Step 2: Start your Application

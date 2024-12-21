@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageResizer from 'react-native-image-resizer';
 import { v4 as uuidv4 } from 'uuid';
-import { readFile } from 'react-native-fs';
 import api from '../constants/api';
+import * as ChatTypes from '../types/ChatTypes';
+import { useDispatch, useSelector } from 'react-redux';
+import { getCurrentLocation } from './LocationAction';
 
 // Action types
 export const LOAD_HISTORY = 'LOAD_HISTORY';
@@ -53,78 +55,69 @@ export const removeChat = (chatId) => ({
   payload: chatId,
 });
 
-export const deleteChat = (chatId) => ({
-  type: DELETE_CHAT,
-  payload: chatId,
-});
-
-export const getSystemReply = async (chatMessages, chatId, messageId) => {
-  console.log('getSystemReply received:', Object.keys(chatMessages));
+export const saveChatsToStorage = async (chats) => {
   try {
-    const messages = await Promise.all(chatMessages.map(async (msg) => {
-      if (msg.type === 'image') {
-        const resizedImage = await ImageResizer.createResizedImage(
-          msg.content,
-          800,
-          600,
-          'JPEG',
-          80
-        );
+    const jsonValue = JSON.stringify(chats);
+    await AsyncStorage.setItem('@chat_records', jsonValue);
+  } catch (e) {
+    console.error('Failed to save chats to storage:', e);
+  }
+};
 
-        const response = await fetch(resizedImage.uri);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        const imgB64Str = await new Promise((resolve) => {
-          reader.onloadend = () => {
-            resolve(reader.result.split(',')[1]);
-          };
-        });
+export const deleteChat = (chatId) => async (dispatch) => {
+  try {
+    // 调用后端 DELETE API
+    const response = await api.delete(`/users/chats/${chatId}`);
+    
+    if (response.status === 200) {
+      // 如果删除成功，派发删除聊天的 action
+      dispatch({
+        type: DELETE_CHAT,
+        payload: chatId,
+      });
+      
+      console.log('Chat deleted successfully');
+    } else {
+      console.error('Failed to delete chat:', response.data.error);
+    }
+  } catch (error) {
+    console.error('Error deleting chat:', error);
+  }
+};
 
-        return {
-          role: msg.role,
-          content: [
-            {
-              type: 'text',
-              text: 'What is in this image?',
-            },
-            {
-              type: 'image_url',
-              image_url: { url: `data:image/jpeg;base64,${imgB64Str}` }
-            }
-          ]
-        };
-      } else if (msg.type === 'text') {
-        return {
-          role: msg.role,
-          content: [
-            {
-              type: 'text',
-              text: msg.content
-            }
-          ]
-        };
-      }
-    }));
+export const processImage = async (photoUri) => {
+  const resizedImage = await ImageResizer.createResizedImage(photoUri, 800, 600, 'JPEG', 80);
+  const response = await fetch(resizedImage.uri);
+  const blob = await response.blob();
+  const reader = new FileReader();
+  
+  return new Promise((resolve) => {
+    reader.onloadend = () => {
+      resolve(reader.result.split(',')[1]);
+    };
+    reader.readAsDataURL(blob);
+  });
+};
 
+
+export const getSystemReply = async (chatMessages, chatId) => {
+  const location = await getCurrentLocation();
+  // to do list
+  // 在页面加载时就获取location，不然的话需要等很久才回回复
+  try {
+    // 直接构建请求数据
     const data = {
       model: 'chatgpt-4o-latest',
-      messages: messages,
+      messages: chatMessages,
       chat_id: chatId,
-      message_id: messageId,
+      location: location,
     };
 
-    console.log('Data sent to backend:', JSON.stringify(data, null, 2));
-
+    // 发送请求到后端
     const response = await api.post('/v1/chat/completions', data);
 
-    const responseData = response.data;
-    const message = {
-      type: 'text',
-      content: responseData.choices[0]?.message?.content || "No response"
-    };
-
-    return message;
+    // 返回响应数据
+    return response.data;
   } catch (error) {
     console.error('Error in getSystemReply:', error);
     throw error;
@@ -132,73 +125,110 @@ export const getSystemReply = async (chatMessages, chatId, messageId) => {
 };
 
 
-export const addNewChat = (initialMessage, dispatch, navigation) => {
-  const newChatId = Date.now().toString();
-  const userMessage = initialMessage ? { id: uuidv4(), content: initialMessage, role: 'user', type: 'text' } : null;
-  const newChat = {
-    id: newChatId,
-    name: 'New Chat',
-    messages: [],
-    lastUsed: new Date().toISOString(),
-  };
+export const updateChat = (chatId, title, category) => ({
+  type: ChatTypes.UPDATE_CHAT,
+  payload: { chatId, title, category },
+});
 
-  dispatch(setCurrentChat(newChatId));
-  dispatch(addChat(newChat));
-  navigation.navigate('Chat', { chatId: newChatId });
+export const handleChatTitleAndCategory = (chatId, chatMessages) => async (dispatch) => {
+  console.log('handleChatTitleAndCategory called', chatId, chatMessages);
+  try {
+    // 构建请求数据
+    const data = {
+      chat_id: chatId,
+      messages: chatMessages,
+      model: 'gpt-4o-latest', // 使用的模型名称
+    };
 
-  if (userMessage) {
-    dispatch(addMessage(newChatId, userMessage));
-  }
+    // 调用后端 API
+    const response = await api.post('/v1/chat/classify_and_title', data);
 
-  return { newChatId, userMessage };
-};
-export const handleChatMessages = async (newChatId, userMessage, photoUri, dispatch) => {
-  let chatMessages = [];
+    if (response.status === 200) {
+      const { title, category } = response.data;
 
-  if (photoUri) {
-    try {
-      const base64Image = await readFile(photoUri, 'base64');
-      const photoMessage = {
-        id: uuidv4(),
-        uri: `data:image/jpeg;base64,${base64Image}`,
-        sender: 'user',
-        type: 'image',
-        timestamp: new Date().toISOString(),
-      };
-
-      dispatch(addMessage(newChatId, photoMessage));
-
-      chatMessages.push({
-        role: 'user',
-        content: `data:image/jpeg;base64,${base64Image}`,
-        type: 'image',
-      });
-
-    } catch (error) {
-      console.error('Error handling photo message:', error);
+      // 确保有返回标题和分类
+      if (title && category) {
+        // 更新 Redux 中的聊天信息
+        dispatch(updateChat(chatId, title, category));
+        console.log(`Chat updated with title: ${title}, category: ${category}`);
+      } else {
+        console.warn('No title or category returned from API');
+      }
+    } else {
+      console.error('Failed to classify and title chat:', response.data.error);
     }
-  }
-
-  if (userMessage) {
-    chatMessages.push({
-      role: 'user',
-      content: userMessage.content,
-      type: 'text',
-    });
-  }
-
-  if (chatMessages.length > 0) {
-    try {
-      const systemReply = await getSystemReply(chatMessages, newChatId, userMessage?.id);
-      dispatch(addMessage(newChatId, {
-        ...systemReply,
-        id: uuidv4(),
-        sender: 'system',
-        timestamp: new Date().toISOString(),
-      }));
-    } catch (error) {
-      console.error('Error getting system reply:', error);
-    }
+  } catch (error) {
+    console.error('Error in handleChatTitleAndCategory:', error);
   }
 };
 
+export const handleChatMessages = (chatId, userMessages, photoUri) => async (dispatch, getState) => {
+  console.log('handleChatMessages called', chatId, userMessages, photoUri);
+
+  try {
+    const state = getState();
+    const chatWindows = state.chatReducer.chatWindows;
+    console.log('chatWindows in handlechatmessages:', chatWindows);
+    const existingMessages = Object.values(chatWindows).find(chat => chat.id === chatId)?.messages || [];
+    const chatMessages = [...existingMessages];
+    console.log('existingMessages in handlechatmessages:', existingMessages);
+
+    // Handle photoUri
+    if (photoUri) {
+      try {
+        const imgB64Str = await processImage(photoUri);
+        const photoMessage = {
+          id: uuidv4(),
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imgB64Str}` } }
+          ],
+        };
+        console.log('photoMessage:', photoMessage);
+        dispatch(addMessage(chatId, photoMessage));
+        chatMessages.push(photoMessage);
+      } catch (error) {
+        console.error('Error handling photo message:', error);
+      }
+    }
+
+    // Handle userMessages
+    if (userMessages) {
+      try {
+        const commonMessage = {
+          id: uuidv4(),
+          role: 'user',
+          content: userMessages,
+        };
+        console.log('commonMessage:', commonMessage);
+        dispatch(addMessage(chatId, commonMessage));
+        chatMessages.push(commonMessage);
+      } catch (error) {
+        console.error('Error handling user messages:', error);
+      }
+    }
+
+    // Ensure chatMessages is not empty
+    if (chatMessages.length > 0) {
+      try {
+        const systemReply = await getSystemReply(chatMessages, chatId)
+        const { title, category } = systemReply.choices[0];
+        if (title && category) {
+          dispatch(updateChat(chatId, title, category));
+        }
+        const messagePayload = {
+          id: systemReply.choices[0].message_id,
+          role: 'assistant',
+          content: systemReply.choices[0]?.message?.content || "No response",
+          timestamp: new Date().toISOString(),
+        };
+        dispatch(addMessage(chatId, messagePayload));
+      } catch (error) {
+        console.error('Error getting system reply:', error);
+      }
+    }
+
+  } catch (error) {
+    console.error('Error in handleChatMessages:', error);
+  }
+};

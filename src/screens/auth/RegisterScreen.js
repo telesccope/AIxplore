@@ -79,22 +79,27 @@ export default function RegisterScreen({navigation}) {
   return (
     <MyBackground>
       <MyInput 
-        placeholder='Please enter your email' 
+        placeholder='Enter your email address' 
         value={email}
-        onChangeText={handleEmailChange}/>
+        onChangeText={handleEmailChange}
+      />
       <MyInput 
-        placeholder='Please enter your email' 
+        placeholder='Enter the verification code' 
         value={code}
-        onChangeText={handleCodeChange}/>
+        onChangeText={handleCodeChange}
+      />
       <MyInput 
-        placeholder='Please enter your email' 
+        placeholder='Create a password' 
         value={Registerpassword}
-        onChangeText={handleRegisterpasswordChange}/>
+        onChangeText={handleRegisterpasswordChange}
+      />
       <MyInput 
-        placeholder='Please enter your email' 
+        placeholder='Confirm your password' 
         value={Confirmpassword}
-        onChangeText={handleConfirmpasswordChange}/>
+        onChangeText={handleConfirmpasswordChange}
+      />
       <MyButton text='Register' onPress={handleRegister}/>
+
     </MyBackground>
   );
 }

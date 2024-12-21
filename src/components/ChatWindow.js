@@ -17,36 +17,65 @@ const ChatWindow = ({ messages = [] }) => {
   }, [messages]);
 
   const renderMessage = ({ item }) => {
-    console.log('renderMessage', item);
     const isUserMessage = item.role === 'user';
-    const handleImagePress = () => {
-      if (item.type === 'image') {
-        setSelectedImage([{ uri: item.uri }]);
-        setIsVisible(true);
-      }
-    };
-
+  
     return (
-      <View style={[styles.messageContainer, item.type === 'image' ? styles.userMessage : (isUserMessage ? styles.userMessage : styles.assistantMessage)]}>
-        {item.type === 'image' ? (
-          <TouchableOpacity onPress={handleImagePress}>
-            <Image source={{ uri: item.uri }} style={styles.image} />
-          </TouchableOpacity>
+      <View
+        style={[
+          styles.messageContainer,
+          isUserMessage ? styles.userMessage : styles.assistantMessage,
+        ]}
+      >
+        {Array.isArray(item.content) ? (
+          item.content.map((contentItem, index) => {
+            if (contentItem.type === 'text') {
+              // 渲染文本消息
+              return (
+                <Markdown
+                  key={index}
+                  style={isUserMessage ? styles.userText : styles.assistantText}
+                >
+                  {contentItem.text}
+                </Markdown>
+              );
+            } else if (contentItem.type === 'image_url') {
+              // 渲染图片消息
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    setSelectedImage([{ uri: contentItem.image_url.url }]);
+                    setIsVisible(true);
+                  }}
+                >
+                  <Image
+                    source={{ uri: contentItem.image_url.url }}
+                    style={styles.image}
+                  />
+                </TouchableOpacity>
+              );
+            }
+            return null; // 如果类型未知，不渲染
+          })
         ) : (
-          <Markdown style={isUserMessage ? styles.userText : styles.assistantText}>
-            {Array.isArray(item.content) ? item.content.map(c => c.text).join(' ') : item.content}
+          <Markdown
+            style={isUserMessage ? styles.userText : styles.assistantText}
+          >
+            {typeof item.content === 'string' ? item.content : ''}
           </Markdown>
         )}
       </View>
     );
   };
+  
+  
 
   // Sort messages by timestamp
   const sortedMessages = messages
     .filter(item => item !== null)
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  console.log('sortedMessages', sortedMessages);
+  //console.log('sortedMessages', sortedMessages);
 
   return (
     <>

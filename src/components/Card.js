@@ -5,16 +5,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 export const QuestionCard = ({ question }) => {
   return (
-    <LinearGradient
-      colors={['#d3dfe4', '#dfdfdf', '#d7d7d7']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.questionBackground}
-    >
       <View style={styles.questionContainer}>
         <Text style={styles.question}>{question}</Text>
       </View>
-    </LinearGradient>
   );
 };
 
@@ -82,22 +75,22 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  questionBackground: {
-    borderRadius: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+  questionContainer: {
+    width: '45%',
+    height: '80%',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '45%',
-    height: '60%',
-    alignSelf: 'center',
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    },
+    marginVertical: 10,
+    backgroundColor: '#D3D3D3', // 使用亮灰色作为背景
+    borderRadius: 10, // 设置圆角的弧度（值越大，弧度越圆）
+    padding: 5, // 添加内边距，使内容与边框有间距
+},
+  question: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
   inputContainer: {
     width: '100%',
     flex: 1,

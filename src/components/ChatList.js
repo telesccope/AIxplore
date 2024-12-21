@@ -8,7 +8,8 @@ export const ChatListItem = ({ chat, onSelect }) => (
     style={styles.buttonContainer}
   >
     <View style={styles.textContainer}>
-      <Text style={styles.buttonText}>{chat.name}</Text>
+      {/* 显示 chat.title */}
+      <Text style={styles.buttonText}>{chat.title}</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.messageCount}>{chat.messages.length} messages</Text>
         <Text style={styles.lastUsed}>

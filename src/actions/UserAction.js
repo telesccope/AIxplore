@@ -59,13 +59,49 @@ export function fetchUserChats() {
 
       // 将对象转换为数组
       const chatsArray = Object.values(chatsObject);
-      console.log('Chats array:', chatsArray);
+
+      // 遍历每个聊天窗口，处理图像消息
+      const processedChatsArray = await Promise.all(
+        chatsArray.map(async (chat) => {
+          const processedMessages = await Promise.all(
+            chat.messages.map(async (message) => {
+              if (message.content.type === 'image_url') {
+                const imageUrl = message.content.url;
+
+                // 下载图像并转换为 Base64
+                const base64Image = await fetchImageAsBase64(imageUrl);
+
+                // 替换消息中的 URL 为 Base64 数据
+                return {
+                  ...message,
+                  content: {
+                    type: 'image_base64',
+                    data: base64Image, // 存储 Base64 数据
+                  },
+                };
+              }
+
+              // 如果不是图像消息，直接返回原消息
+              return message;
+            })
+          );
+
+          // 返回处理后的聊天窗口
+          return {
+            ...chat,
+            messages: processedMessages,
+          };
+        })
+      );
+
+      console.log('Processed chats array:', processedChatsArray);
+
       dispatch({
         type: ChatTypes.FETCH_CHATS_SUCCESS,
-        payload: chatsArray,
+        payload: processedChatsArray,
       });
 
-      return { payload: chatsArray };
+      return { payload: processedChatsArray };
     } catch (error) {
       const errorMessage = error.response ? error.response.data.message : error.message;
       console.error('Error fetching chats:', errorMessage);
@@ -80,6 +116,24 @@ export function fetchUserChats() {
       throw error;
     }
   };
+}
+
+// 辅助函数：从 URL 下载图像并转换为 Base64
+async function fetchImageAsBase64(imageUrl) {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]); // 返回 Base64 数据（去掉前缀）
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error fetching image as Base64:', error, imageUrl);
+    return null;
+  }
 }
 
 

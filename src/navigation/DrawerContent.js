@@ -19,9 +19,12 @@ function CustomDrawerContent(props) {
     { title: 'Settings', onPress: () => navigation.navigate('Settings') },
     { title: 'Profile', onPress: () => navigation.navigate('Profile') }
   ];
-  console.log(Object.entries(chatWindows),'customDrawer')
+
+  //console.log(Object.entries(chatWindows), 'customDrawer');
+
   return (
     <DrawerContentScrollView {...props}>
+      {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
           <Icon name="arrow-back" size={24} />
@@ -30,13 +33,23 @@ function CustomDrawerContent(props) {
         <CustomMenu menuItems={menuItems} />
       </View>
       
-      {Object.entries(chatWindows).map(([_, chat]) => (
-        <DrawerItem
-          key={chat.id} // Use the internal id as the key
-          label={chat.title.replace(/^"|"$/g, '')}
-          onPress={() => handleNavigateToChat(chat.id)} // Pass the internal id to the handler
-        />
-      ))}
+      {/* Chat Items */}
+      {Object.entries(chatWindows).map(([_, chat]) => {
+        //console.log(chat, 'chatwindowsdrawer');
+
+        // 如果 title 存在且是字符串，显示 title；否则显示 "New Chat"
+        const label = typeof chat.title === 'string' && chat.title.trim() !== '' 
+          ? chat.title.replace(/^"|"$/g, '') 
+          : 'New Chat';
+
+        return (
+          <DrawerItem
+            key={chat.id} // 使用 chat.id 作为唯一键
+            label={label}
+            onPress={() => handleNavigateToChat(chat.id)} // 传递 chat.id
+          />
+        );
+      })}
     </DrawerContentScrollView>
   );
 }

@@ -141,11 +141,12 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.zoomButtonText}>⊕</Text>
         </TouchableOpacity>
       </View>
-
+      {/* 两个问题卡片 
       <View style={styles.questionContainer}>
         <QuestionCard question='Any good restaurant near by?'></QuestionCard>
         <QuestionCard question='Tell me more about The British Museum.'></QuestionCard>
       </View>
+        */}
 
       <View style={styles.chatListContainer}>
         <ChatList 

@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 import GetLocation from 'react-native-get-location';
 import { UPDATE_LOCATION } from '../types/ChatTypes';
+import { useDispatch } from 'react-redux';
 
-
+// Action：更新位置
 export const updateLocation = (location) => ({
   type: UPDATE_LOCATION,
-  payload: location, 
+  payload: location,
 });
 
 // 请求 Android 位置权限
@@ -63,27 +64,49 @@ const getCurrentLocation = async () => {
     return location;
   } catch (error) {
     console.error('Location error:', error);
-    Alert.alert('Error', error.message || 'Failed to get current location');
+
+    // 根据错误代码展示更具体的错误信息
+    switch (error.code) {
+      case 'CANCELLED':
+        Alert.alert('Error', 'Location request was cancelled');
+        break;
+      case 'UNAVAILABLE':
+        Alert.alert('Error', 'Location service is disabled or unavailable');
+        break;
+      case 'TIMEOUT':
+        Alert.alert('Error', 'Location request timed out');
+        break;
+      case 'UNAUTHORIZED':
+        Alert.alert('Error', 'Authorization denied');
+        break;
+      default:
+        Alert.alert('Error', error.message || 'Failed to get current location');
+    }
+
     return null;
   }
 };
 
+// 更新用户位置到 Redux
 const updateUserLocation = async () => {
   const dispatch = useDispatch();
 
   try {
-    const location = await GetLocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 15000,
-    });
+    const location = await getCurrentLocation();
 
-    // 更新 Redux 中的 location
-    dispatch(updateLocation({
-      latitude: location.latitude,
-      longitude: location.longitude,
-      accuracy: location.accuracy,
-      timestamp: location.time,
-    }));
+    if (location) {
+      // 更新 Redux 中的 location
+      dispatch(
+        updateLocation({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          accuracy: location.accuracy,
+          timestamp: location.time,
+        })
+      );
+
+      console.log('Location updated in Redux:', location);
+    }
   } catch (error) {
     console.error('Failed to fetch location:', error);
   }
@@ -95,7 +118,7 @@ const subscribeToLocationUpdates = async (callback) => {
   if (!hasPermission) return null;
 
   try {
-    // 订阅位置更新（模拟实现，因为 react-native-get-location 不直接支持订阅）
+    // 模拟位置订阅（react-native-get-location 不支持实时订阅）
     const intervalId = setInterval(async () => {
       const location = await getCurrentLocation();
       if (location && callback) {

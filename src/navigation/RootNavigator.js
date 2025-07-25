@@ -9,7 +9,8 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <HomeNavigator /> : <AuthNavigator />}
+      {/*{isAuthenticated ? <HomeNavigator /> : <AuthNavigator />}*/}
+      <HomeNavigator />
     </NavigationContainer>
   );
 }

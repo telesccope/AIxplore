@@ -11,6 +11,7 @@ export const BASE_URL = "https://travelassistant.uk"
 //export const BASE_URL = "http://10.62.4.83:8000"
 //export const BASE_URL = "http://10.97.201.208:8000"
 //export const BASE_URL = "http://10.97.226.115:8000"
+//export const BASE_URL = "http://10.62.4.10:8000"
 const api = axios.create({
   baseURL: BASE_URL, 
 });

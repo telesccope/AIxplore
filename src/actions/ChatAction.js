@@ -30,7 +30,9 @@ export const loadChatHistory = () => async (dispatch) => {
   }
 };
 
-export const addChat = (chat) => ({
+export const addChat = (chat) => (
+  console.log('addChat called', chat),
+  {
   type: ADD_CHAT,
   payload: chat,
 });
@@ -65,6 +67,7 @@ export const saveChatsToStorage = async (chats) => {
 };
 
 export const deleteChat = (chatId) => async (dispatch) => {
+  /*
   try {
     // 调用后端 DELETE API
     const response = await api.delete(`/users/chats/${chatId}`);
@@ -82,7 +85,11 @@ export const deleteChat = (chatId) => async (dispatch) => {
     }
   } catch (error) {
     console.error('Error deleting chat:', error);
-  }
+  }*/
+  dispatch({
+    type: DELETE_CHAT,
+    payload: chatId,
+  });
 };
 
 export const processImage = async (photoUri) => {
@@ -223,6 +230,9 @@ export const handleChatMessages = (chatId, userMessages, photoUri) => async (dis
           timestamp: new Date().toISOString(),
         };
         dispatch(addMessage(chatId, messagePayload));
+        const updatedMessages = [messagePayload];
+        console.log('Updated messages:', updatedMessages);
+        dispatch(handleChatTitleAndCategory(chatId, updatedMessages));
       } catch (error) {
         console.error('Error getting system reply:', error);
       }

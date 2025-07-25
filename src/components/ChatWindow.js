@@ -5,7 +5,7 @@ import Markdown from 'react-native-markdown-display';
 import ImageViewing from 'react-native-image-viewing';
 
 const ChatWindow = ({ messages = [] }) => {
-  console.log('chatwindow messages', messages);
+  //console.log('chatwindow messages', messages);
   const flatListRef = useRef();
   const [isVisible, setIsVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);

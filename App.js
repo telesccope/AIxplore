@@ -1,16 +1,20 @@
 import React from 'react';
 import { Provider as ReduxProvider } from 'react-redux';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store.js';
 import RootNavigator from './src/navigation/RootNavigator.js';
-import store from './store.js';
+import { ActivityIndicator } from 'react-native';
 import 'react-native-get-random-values';
 
 const App = () => {
   return (
     <ReduxProvider store={store}>
-      <PaperProvider>
-        <RootNavigator />
-      </PaperProvider>
+      <PersistGate loading={<ActivityIndicator />} persistor={persistor}>
+        <PaperProvider>
+          <RootNavigator />
+        </PaperProvider>
+      </PersistGate>
     </ReduxProvider>
   );
 };

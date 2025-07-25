@@ -32,6 +32,34 @@ export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
       end={{ x: 0, y: 1 }}
       style={styles.background}
     >
+      <TouchableOpacity style={styles.cameraButton} onPress={onOpenCamera}>
+        <Icon name="camera-outline" size={30} color="#000" />
+      </TouchableOpacity>
+    </LinearGradient>
+  );
+};
+/*
+export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    if (!photoUri) {
+      // Reset the text input if needed when photoUri changes
+    }
+  }, [photoUri]);
+
+  const handleSend = () => {
+    onSend(text);
+    setText(''); // Clear the text input
+  };
+
+  return (
+    <LinearGradient
+      colors={['#dfdfdf', '#dfdfdf', '#efefef']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.background}
+    >
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.fullTextInput}
@@ -57,23 +85,23 @@ export const HomeInputCard = ({ onSend, onOpenCamera, photoUri }) => {
     </LinearGradient>
   );
 };
-
+*/
 const styles = StyleSheet.create({
   background: {
     borderRadius: 15,
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    width: '90%',
-    height: '90%',
+    width: '30%',
+    height: '30%',
     alignSelf: 'center',
     backgroundColor: '#ffffff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
   },
   questionContainer: {
     width: '45%',

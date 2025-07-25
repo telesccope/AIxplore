@@ -32,7 +32,6 @@ const ChatScreen = ({ navigation, route }) => {
     }
   }, [chatId, dispatch]);
 
-  // 动态设置标题，当 chatwindow 或其 title 更新时触发
   React.useLayoutEffect(() => {
     const title = chatwindow && typeof chatwindow.title === 'string' && chatwindow.title.trim() !== ''
       ? chatwindow.title.replace(/^"|"$/g, '') // 去掉可能的引号
@@ -48,6 +47,11 @@ const ChatScreen = ({ navigation, route }) => {
           style={{ marginLeft: 10 }}
         />
       ),
+      headerTitleStyle: {
+        fontSize: 12, // ✅ 设置字体大小
+        fontWeight: 'bold', // 可选：加粗
+        color: '#333', // 可选：字体颜色
+      },
       headerRight: () => (
         <Menu
           visible={menuVisible}
@@ -61,13 +65,11 @@ const ChatScreen = ({ navigation, route }) => {
             />
           }
         >
-          <Menu.Item onPress={() => { setMenuVisible(false); /* Option 1 action */ }} title="Option 1" />
-          <Menu.Item onPress={() => { setMenuVisible(false); /* Option 2 action */ }} title="Option 2" />
           <Menu.Item onPress={() => { setMenuVisible(false); handleDeleteChat(); }} title="Delete Chat" />
         </Menu>
       ),
     });
-  }, [navigation, menuVisible, chatwindow]); // 依赖 chatwindow 确保动态更新标题
+  }, [navigation, menuVisible, chatwindow]); 
   
 
   const handleDeleteChat = () => {
@@ -86,29 +88,10 @@ const ChatScreen = ({ navigation, route }) => {
     return unsubscribe;
   }, [navigation, chatId, currentMessages, dispatch]);
 
-  const handleSend = async (message) => {
-    dispatch(handleChatMessages(chatId, message, photoUri));
-    setPhotoUri(null);
-  };
-  
-  const handleCameraOpen = async () => {
-    const uri = await openCamera();
-    if (uri) {
-      setPhotoUri(uri);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.chatwindowContainer}>
         <ChatWindow messages={currentMessages} />
-      </View>
-      <View style={styles.inputContainer}>
-        <HomeInputCard 
-            onSend={handleSend} 
-            onOpenCamera={handleCameraOpen}
-            photoUri={photoUri}
-        />
       </View>
     </View>
   );

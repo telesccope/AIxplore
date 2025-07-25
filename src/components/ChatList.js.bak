@@ -1,32 +1,26 @@
 import React from 'react';
 import { FlatList, View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Image } from 'react-native';
+import moment from 'moment';
 
-export const ChatListItem = ({ chat, onSelect }) => {
-  console.log('ChatListItem', JSON.stringify(chat, null, 2));
-
-  // ✅ 安全提取图片 URL
-  const imageMessage = chat.messages?.[0]?.content?.find(
-    item => item.type === 'image_url'
-  );
-  const imageUrl = imageMessage?.image_url?.url;
-
-  return (
-    <TouchableOpacity
-      onPress={() => onSelect(chat.id)}
-      style={styles.itemContainer}
-    >
-      <Image
-        source={imageUrl ? { uri: imageUrl } : require('../../assets/logo.jpg')}
-        style={styles.image}
-      />
-      <Text style={styles.title}>{chat.title}</Text>
-    </TouchableOpacity>
-  );
-};
+export const ChatListItem = ({ chat, onSelect }) => (
+  <TouchableOpacity
+    onPress={() => onSelect(chat.id)}
+    style={styles.buttonContainer}
+  >
+    <View style={styles.textContainer}>
+      {/* 显示 chat.title */}
+      <Text style={styles.buttonText}>{chat.title}</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.messageCount}>{chat.messages.length} messages</Text>
+        <Text style={styles.lastUsed}>
+          {moment(chat.lastUsed).fromNow()}
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
 const ChatList = ({ chats, onSelect }) => {
-  console.log('ChatList', chats);
   return (
     <FlatList
       data={chats}
@@ -35,11 +29,9 @@ const ChatList = ({ chats, onSelect }) => {
         <ChatListItem chat={item} onSelect={onSelect} />
       )}
       contentContainerStyle={styles.listContainer}
-      numColumns={3} // 每行三个
     />
   );
 };
-
 
 const styles = StyleSheet.create({
   listContainer: {
@@ -72,23 +64,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
   },
-  image: {
-    width: 70,
-    height: 70,
-    borderRadius: 25,
-    marginRight: 10,
-  },
-  title: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#333',
-    flexWrap: 'wrap', 
-  },
-  itemContainer:{
-    width: '30%', 
-    alignItems: 'center',
-  }
-
 });
 
 export default ChatList;

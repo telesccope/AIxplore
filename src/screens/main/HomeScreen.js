@@ -10,25 +10,13 @@ import moment from 'moment';
 import { openCamera } from '../../actions/CameraAction';
 import CustomMenu from '../../components/CustomMenu';
 import { v4 as uuidv4 } from 'uuid';
-import { getCurrentLocation } from '../../actions/LocationAction';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const chatWindows = useSelector(state => state.chatReducer.chatWindows);
   const [photoUri, setPhotoUri] = useState(null);
-
-  const fetchLocation = async () => {
-    const location = await getCurrentLocation();
-    if (location) {
-      console.log('Latitude:', location.latitude);
-      console.log('Longitude:', location.longitude);
-    }
-  };
+  const [message, setMessage] = useState('');
   
-  useEffect(() => {
-    fetchLocation();
-  }, []);
-
   const [menuVisible, setMenuVisible] = useState(false);
 
   const closeMenu = () => setMenuVisible(false);
@@ -43,10 +31,10 @@ const HomeScreen = ({ navigation }) => {
   
 
   const menuItems = [
-    { title: 'View Details', onPress: () => console.log('View Details pressed') },
+    //{ title: 'View Details', onPress: () => console.log('View Details pressed') },
     { title: 'Share', onPress: () => console.log('Share pressed') },
     { title: 'Report', onPress: () => console.log('Report pressed') },
-    { title: 'Logout', onPress: handleLogout },
+    //{ title: 'Logout', onPress: handleLogout },
   ];
 
   React.useLayoutEffect(() => {
@@ -57,11 +45,12 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSelectChat = (chatId) => {
     dispatch(setCurrentChat(chatId));
-    navigation.navigate('Chat', { chatId }); // Pass chatId as a parameter
+    navigation.navigate('Chat', { chatId }); 
   };  
 
   const handleNewChat = async (chatId, initialMessage, photoUri, dispatch, navigation) => {
-    if (!initialMessage && !photoUri) 
+    console.log('***handleNewChat called with chatId:', chatId, 'initialMessage:', initialMessage, 'photoUri:', photoUri);
+    if (!photoUri) 
       return;
     // 创建新的聊天
 
@@ -72,6 +61,7 @@ const HomeScreen = ({ navigation }) => {
       lastUsed: new Date().toISOString(),
       messages: [],
     };
+    console.log('handleNewChat called with chatId:', chatId, 'initialMessage:', initialMessage, 'photoUri:', photoUri);
     // 添加新聊天并设置为当前聊天
     dispatch(addChat(newChat));
     dispatch(setCurrentChat(chatId));
@@ -83,18 +73,6 @@ const HomeScreen = ({ navigation }) => {
     await dispatch(handleChatMessages(chatId, initialMessage, photoUri));
   };
   
-  const handleSend = (message) => {
-    const chatId = uuidv4(); // 生成唯一的 chatId
-    setPhotoUri(null); // 重置 photoUri
-    handleNewChat(chatId, message, photoUri, dispatch, navigation); // 立即执行 handleNewChat
-  
-    // 使用 setTimeout 延迟 1 秒执行 dispatch
-    setTimeout(() => {
-      dispatch(handleChatTitleAndCategory(chatId, message));
-    }, 1000); // 延迟 1000 毫秒（1 秒）
-  };
-  
-  
   const handleDeleteChat = (chatId) => {
     //console.log('Deleting chat with ID:', chatId);
     dispatch(deleteChat(chatId));
@@ -102,10 +80,23 @@ const HomeScreen = ({ navigation }) => {
   
   const handleCameraOpen = async () => {
     const uri = await openCamera();
+    console.log('Camera opened, URI:', uri); 
     if (uri) {
+      console.log('Camera URI:', uri);
       setPhotoUri(uri);
+      const chatId = uuidv4();
+      console.log('calling handleNewChat with chatId:', chatId, 'message:', '', 'uri:', uri);
+      handleNewChat(chatId, message, uri, dispatch, navigation);
+      /*
+      setTimeout(() => {
+        dispatch(handleChatTitleAndCategory(chatId, message));
+      }, 1000);*/
     }
-  };
+    else{
+      console.log('No photo taken or camera operation cancelled');
+    }
+};
+
   console.log('chatWindows', chatWindows, Object.values(chatWindows));
   const chatsWithLastUsed = Object.values(chatWindows).map(chat => ({
     ...chat,
@@ -116,7 +107,9 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior='height'>
+      {/*
       <View style={styles.mapContainer}>
+        
         <MapView
           style={StyleSheet.absoluteFillObject} // 地图填充整个 mapContainer 区域
           initialRegion={{
@@ -133,7 +126,7 @@ const HomeScreen = ({ navigation }) => {
           />
         </MapView>
 
-        {/* 放大按钮覆盖在地图右下角 */}
+        {/* 放大按钮覆盖在地图右下角 
         <TouchableOpacity 
           style={styles.zoomButton}
           onPress={() => navigation.navigate('Map')} // 替换为跳转或其他功能
@@ -141,6 +134,7 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.zoomButtonText}>⊕</Text>
         </TouchableOpacity>
       </View>
+      */}
       {/* 两个问题卡片 
       <View style={styles.questionContainer}>
         <QuestionCard question='Any good restaurant near by?'></QuestionCard>
@@ -157,7 +151,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <View style={styles.newChatContainer}>
         <HomeInputCard 
-          onSend={handleSend}
+          //onSend={handleSend}
           onOpenCamera={handleCameraOpen}
           photoUri={photoUri}
           />
@@ -176,20 +170,21 @@ const styles = StyleSheet.create({
     },    
     questionContainer: {
       flex: 2,
-      width: '100%', // 容器宽度占满父组件
-      flexDirection: 'row', // 横向排列子元素
-      justifyContent: 'space-between', // 子元素之间留有空隙
-      alignItems: 'center', // 垂直方向居中对齐
-      paddingHorizontal: 30, // 左右内边距，避免内容贴边
+      width: '100%', 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      paddingHorizontal: 30, 
   },  
     chatListContainer: {
       flex: 4, 
+      width: '100%',
     },
   newChatContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 5,
     flex: 2,
   },
   newChatButton: {
@@ -208,9 +203,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   zoomButton: {
-    position: 'absolute', // 定位到 mapContainer 的右下角
-    bottom: 10,          // 距离底部 10 像素
-    right: 10,           // 距离右边 10 像素
+    position: 'absolute', 
+    bottom: 10,          
+    right: 10,          
     opacity: 0.8,
     backgroundColor: 'white',
     paddingVertical: 10,

@@ -1,97 +1,150 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🏛️ AIxplore: England Statue Recognition App (React Native)
 
-# Getting Started
+A cross-platform mobile app built with [**React Native**](https://reactnative.dev) that uses **RAG (Retrieval-Augmented Generation)** to identify and describe statues across England. This project serves as the **frontend** for the AI-powered cultural discovery experience.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+## 🚀 Getting Started
 
-## Step 1: Start the Metro Server
+> ⚠️ **Before you begin**, ensure your development environment is properly configured. Follow the official [React Native Environment Setup](https://reactnative.dev/docs/environment-setup) guide up to the "Creating a new application" step.
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+---
 
-To start Metro, run the following command from the _root_ of your React Native project:
+### 1. Start the Metro Bundler
+
+In the project root, run:
 
 ```bash
-# using npm
+# Using npm
 npm start
+
+# OR reset cache
 npx react-native start --reset-cache
+
 # OR using Yarn
 yarn start
-
-
-./gradlew assembleRelease
-adb install app/build/outputs/apk/release/app-release.apk
-
-adb logcat '*:S' ReactNative:V ReactNativeJS:V
-
-
-rm -rf ~/.gradle/caches
-rm -rf ~/.gradle/kotlin-dsl
-rm -rf ~/.gradle/wrapper
-rm -rf android/.gradle
-rm -rf android/app/.cxx
-
-cd android
-./gradlew --stop
-./gradlew clean
 ```
 
-## Step 2: Start your Application
+---
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+### 2. Launch the App
 
-### For Android
+In a separate terminal:
+
+#### Android
 
 ```bash
-# using npm
 npm run android
-
-# OR using Yarn
+# OR
 yarn android
 ```
 
-### For iOS
+#### iOS
 
 ```bash
-# using npm
 npm run ios
-
-# OR using Yarn
+# OR
 yarn ios
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+---
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+### 3. Modify App
 
-## Step 3: Modifying your App
+Edit files like `App.js` or `src/screens` and reload:
 
-Now that you have successfully run the app, let's modify it.
+* Android: Double press <kbd>R</kbd> or press <kbd>Cmd/Ctrl</kbd> + <kbd>M</kbd> → Reload
+* iOS: Press <kbd>Cmd</kbd> + <kbd>R</kbd>
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+---
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+### 4. Compile App
 
-## Congratulations! :tada:
+For release build:
+```sh
+./gradlew assembleRelease
+```
+the final file is located at **./android/app/build/outputs/apk**
+the following command will build 'aab' file
+```
+./gradlew bundleRelease
+```
+### **2. Install APK on Device**
 
-You've successfully run and modified your React Native App. :partying_face:
+```sh
+adb install app/build/outputs/apk/release/app-release.apk
+```
 
-### Now what?
+## 📁 Project Structure
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+Here's a simplified overview of the key directories and their responsibilities:
 
-# Troubleshooting
+```bash
+.
+├── App.js                 # Root component
+├── index.js              # Entry point for React Native
+├── assets/               # Static images (e.g., logo)
+├── src/                  # Main source code
+│   ├── actions/          # Redux action creators (audio, chat, user, etc.)
+│   ├── components/       # Reusable UI components (ChatWindow, Button, Input, etc.)
+│   ├── constants/        # API endpoints and fixed values
+│   ├── navigation/       # React Navigation configs (Auth, Home, Root navigators)
+│   ├── reducers/         # Redux reducers (chat, auth, user)
+│   ├── screens/          # App screens (Login, Home, Map, Profile, etc.)
+│   │   ├── auth/         # Login/Register/Forgot Password
+│   │   └── main/         # Main app screens (Chat, Map, Home)
+│   ├── types/            # Type definitions for Redux actions and state
+│   └── utils/            # Utility functions (e.g., storage helpers)
+├── store.js              # Redux store setup
+├── metro.config.js       # Metro bundler config
+└── package.json          # Project dependencies and scripts
+```
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
+## 🤖 Core Features
 
-To learn more about React Native, take a look at the following resources:
+* **RAG-Powered Statue Identification**
+  Snap or upload photos to get rich information about English statues using retrieval-augmented generation.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+* **Map Integration**
+  View nearby statues on an interactive map.
+
+* **Chat Interface**
+  Ask questions and get AI-powered contextual answers about monuments.
+
+* **Profile Management**
+  Login, register, and update user preferences.
+
+---
+
+## 🛠️ Troubleshooting
+
+* Stuck with Gradle? Try cleaning your project:
+
+```bash
+cd android
+./gradlew clean
+./gradlew --stop
+```
+
+* Remove Gradle caches if needed:
+
+```bash
+rm -rf ~/.gradle/caches
+```
+
+* View logs (Android):
+
+```bash
+adb logcat '*:S' ReactNative:V ReactNativeJS:V
+```
+
+---
+
+## 📚 Learn More
+
+* [React Native Docs](https://reactnative.dev/docs/getting-started)
+* [Troubleshooting Guide](https://reactnative.dev/docs/troubleshooting)
+* [Integration with Existing Apps](https://reactnative.dev/docs/integration-with-existing-apps)
+
+---
 

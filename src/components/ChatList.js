@@ -5,7 +5,6 @@ import { Image } from 'react-native';
 export const ChatListItem = ({ chat, onSelect }) => {
   console.log('ChatListItem', JSON.stringify(chat, null, 2));
 
-  // ✅ 安全提取图片 URL
   const imageMessage = chat.messages?.[0]?.content?.find(
     item => item.type === 'image_url'
   );

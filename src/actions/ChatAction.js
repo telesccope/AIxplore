@@ -132,9 +132,9 @@ export const getSystemReply = async (chatMessages, chatId) => {
 };
 
 
-export const updateChat = (chatId, title, category) => ({
+export const updateChat = (chatId, title) => ({
   type: ChatTypes.UPDATE_CHAT,
-  payload: { chatId, title, category },
+  payload: { chatId, title},
 });
 
 export const handleChatTitleAndCategory = (chatId, chatMessages) => async (dispatch) => {
@@ -156,7 +156,7 @@ export const handleChatTitleAndCategory = (chatId, chatMessages) => async (dispa
       // 确保有返回标题和分类
       if (title && category) {
         // 更新 Redux 中的聊天信息
-        dispatch(updateChat(chatId, title, category));
+        dispatch(updateChat(chatId, title));
         console.log(`Chat updated with title: ${title}, category: ${category}`);
       } else {
         console.warn('No title or category returned from API');
@@ -219,9 +219,9 @@ export const handleChatMessages = (chatId, userMessages, photoUri) => async (dis
     if (chatMessages.length > 0) {
       try {
         const systemReply = await getSystemReply(chatMessages, chatId)
-        const { title, category } = systemReply.choices[0];
-        if (title && category) {
-          dispatch(updateChat(chatId, title, category));
+        const { title } = systemReply.choices[0];
+        if (title) {
+          dispatch(updateChat(chatId, title));
         }
         const messagePayload = {
           id: systemReply.choices[0].message_id,
@@ -232,7 +232,7 @@ export const handleChatMessages = (chatId, userMessages, photoUri) => async (dis
         dispatch(addMessage(chatId, messagePayload));
         const updatedMessages = [messagePayload];
         console.log('Updated messages:', updatedMessages);
-        dispatch(handleChatTitleAndCategory(chatId, updatedMessages));
+        //dispatch(handleChatTitleAndCategory(chatId, updatedMessages));
       } catch (error) {
         console.error('Error getting system reply:', error);
       }

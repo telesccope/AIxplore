@@ -55,11 +55,18 @@ const getCurrentLocation = async () => {
   }
 
   try {
+    
     const location = await GetLocation.getCurrentPosition({
       enableHighAccuracy: true, // 是否使用高精度定位
       timeout: 15000, // 超时时间（毫秒）
     });
-
+    
+   /*
+    const location = {
+      latitude: 51.256561,
+      longitude: -2.2472996,
+    }
+    */
     console.log('Current location:', location);
     return location;
   } catch (error) {

@@ -16,7 +16,10 @@ const HomeScreen = ({ navigation }) => {
   const chatWindows = useSelector(state => state.chatReducer.chatWindows);
   const [photoUri, setPhotoUri] = useState(null);
   const [message, setMessage] = useState('');
-  
+
+  const [selectedChats, setSelectedChats] = useState(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+
   const [menuVisible, setMenuVisible] = useState(false);
 
   const closeMenu = () => setMenuVisible(false);
@@ -104,6 +107,50 @@ const HomeScreen = ({ navigation }) => {
   }));
   
   
+  const handleLongPress = (chatId) => {
+    setSelectedChats(new Set([chatId]));
+    setIsSelectionMode(true);
+  };
+  
+  const handlePress = (chatId) => {
+    if (isSelectionMode) {
+      toggleChatSelection(chatId);
+    } else {
+      handleSelectChat(chatId);
+    }
+  };
+  
+  const toggleChatSelection = (chatId) => {
+    const newSelected = new Set(selectedChats);
+    if (newSelected.has(chatId)) {
+      newSelected.delete(chatId);
+    } else {
+      newSelected.add(chatId);
+    }
+    setSelectedChats(newSelected);
+  
+    // 如果清空了选择，退出选择模式
+    if (newSelected.size === 0) {
+      setIsSelectionMode(false);
+    }
+  };
+  
+  const handleSelectAll = () => {
+    const allIds = chatsWithLastUsed.map(chat => chat.id);
+    setSelectedChats(new Set(allIds));
+  };
+  
+  const clearSelection = () => {
+    setSelectedChats(new Set());
+    setIsSelectionMode(false);
+  };
+  
+  const handleBatchDelete = () => {
+    selectedChats.forEach(chatId => {
+      dispatch(deleteChat(chatId));
+    });
+    clearSelection();
+  };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior='height'>
@@ -147,6 +194,10 @@ const HomeScreen = ({ navigation }) => {
           chats={chatsWithLastUsed} 
           onSelect={handleSelectChat} 
           onDelete={handleDeleteChat} 
+          onLongPress={handleLongPress}
+          selectedChats={selectedChats}
+          isSelectionMode={isSelectionMode}
+          onCancel={clearSelection}
         />
       </View>
       <View style={styles.newChatContainer}>

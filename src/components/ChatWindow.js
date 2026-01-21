@@ -118,9 +118,11 @@ const styles = StyleSheet.create({
   },
   userText: {
     color: '#000',
+    textAlign: 'justify'
   },
   assistantText: {
     color: '#000',
+    textAlign: 'justify'
   },
   image: {
     width: 200,
